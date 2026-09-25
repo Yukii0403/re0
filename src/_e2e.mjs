@@ -96,12 +96,15 @@ const run = (script, args, env = {}) => new Promise(resolve => {
 const stages = [];
 let stoppedAt = null;
 const stage = async (name, fn) => {
+  // ★ 立刻报"开始"，而不是等全部跑完才打印 —— 否则页面几十分钟看不到任何进展
+  console.log(`  ▶ ${name} …`);
   if (stoppedAt) return null;
   if (AUDIT_ONLY) { stages.push({ stage: name, code: 0, ms: 0, note: '--audit-only：跳过（用已有产物）' }); return null; }
   const t0 = Date.now();
   const r = await fn();
   const rec = { stage: name, code: r?.code ?? (r?.ok === false ? 1 : 0), ms: r?.ms ?? (Date.now() - t0), note: r?.note ?? null };
   stages.push(rec);
+  console.log(`  ✔ ${name} 完成（exit=${rec.code}）`);
   if (rec.code !== 0) {
     stoppedAt = name;
     rep.push(`  ★ ${name} 失败（exit=${rec.code}）→ **不跑下游**（fail-closed）`);

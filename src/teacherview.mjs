@@ -346,26 +346,93 @@ export function buildTeacherView({ assessmentArtifact, rubric, profile, topN = 3
     const [lo, hi] = a.length <= c.length ? [a, c] : [c, a];
     return lo.length >= 30 && hi.includes(lo);
   };
+  // ★★ 主判据：**原文锚点区间重叠** —— 比比对引文文字可靠得多。
+  //   实测同一处表格错误同时挂在 R2.1/R2.2/R2.3/R3.1/R3.2 上，offset 完全相同（734–794），
+  //   但有的条目把引文写成表格行、有的写成"4.1、4.0…之和为 20.2"，文字对不上 → 漏合并。
+  const anchorOf = f => {
+    const o = f.located?.offset;
+    if (!(o && Number.isInteger(o.start) && Number.isInteger(o.end) && o.end > o.start)) return null;
+    return { s: o.start, e: o.end, entry: f.located?.source_ref?.entry ?? null,
+      len: o.end - o.start };
+  };
+  // ★ 判据要点：
+  //   ① 用「交集 / **较短**区间长度」而不是交并比 —— 否则"整行(734–794)"与"只框住数字的锚点(790–794)"
+  //      这种**包含关系**算出来只有 0.067，会漏合并（实测 R3.2 就是这样漏掉的）。
+  //   ② 要求同一 L1 entry：短锚点（如只框 4 个字符的 "3.40"）在别处也可能出现，靠 entry 兜住。
+  const anchorOverlap = (a, c) => {
+    if (!a || !c) return 0;
+    if (a.entry && c.entry && a.entry !== c.entry) return 0;      // 不同段落 → 不视为同一处
+    if (Math.min(a.len, c.len) < 3) return 0;                     // 太短的锚点不可靠
+    const inter = Math.min(a.e, c.e) - Math.max(a.s, c.s);
+    if (inter <= 0) return 0;
+    return inter / Math.min(a.len, c.len);
+  };
+  // 依据：把"支撑这条观察的原因"显式收集起来（合并时不能丢）
+  const basisOf = f => {
+    const out = [];
+    const l3 = f.verification;
+    if (l3?.check_id) out.push({ type: 'l3', check_id: l3.check_id, stance: l3.stance ?? null });
+    if (f.warrant?.basis_kind) out.push({ type: 'warrant', kind: f.warrant.basis_kind });
+    return out;
+  };
+  const rankOfStance = st => (st === 'fail' ? 3 : st === 'unverified' ? 2 : st === 'pass' ? 1 : 0);
+  const mergeBasis = (list) => {
+    const l3s = list.filter(x => x.type === 'l3');
+    const ks = [...new Set(list.filter(x => x.type === 'warrant').map(x => x.kind))];
+    const bestL3 = l3s.sort((a, c) => rankOfStance(c.stance) - rankOfStance(a.stance))[0] ?? null;
+    return { l3: bestL3, l3_all: l3s, warrant_kinds: ks };
+  };
   const mergedConcerns = [];
   for (const f of qualified) {
     const q = normQuote(f.warrant?.student_quote ?? f.quote ?? '');
-    const hit = q ? mergedConcerns.find(m => sameQuote(normQuote(m.warrant?.student_quote ?? m.quote ?? ''), q)) : null;
+    const a = anchorOf(f);
+    const hit = mergedConcerns.find(m => {
+      if (m.__anchor && a && anchorOverlap(m.__anchor, a) >= 0.5) return true;   // ★ 锚点重叠 ≥50% → 同一处
+      return q ? sameQuote(normQuote(m.warrant?.student_quote ?? m.quote ?? ''), q) : false;
+    });
     if (hit) {
       if (!hit.rubric_item_ids.includes(f.rubric_item_id)) hit.rubric_item_ids.push(f.rubric_item_id);
       hit.merged_from += 1;
+      hit.__basis.push(...basisOf(f));
+      const mb = mergeBasis(hit.__basis);
+      hit.verification = mb.l3 ? { check_id: mb.l3.check_id, stance: mb.l3.stance } : null;
+      hit.evidence_basis = mb;
       hit.rank_reason += `｜与 ${f.rubric_item_id} 指的是同一处（已合并为一条）`;
       continue;
     }
-    mergedConcerns.push({ ...f, rubric_item_id: f.rubric_item_id, rubric_item_ids: [f.rubric_item_id], merged_from: 1 });
+    mergedConcerns.push({ ...f, rubric_item_id: f.rubric_item_id, rubric_item_ids: [f.rubric_item_id],
+      merged_from: 1, __anchor: a, __basis: basisOf(f) });
+  }
+  // 合并完成后落到对外字段（供渲染与自证使用）
+  for (const m of mergedConcerns) {
+    const mb = mergeBasis(m.__basis || []);
+    m.evidence_basis = mb;
+    delete m.__anchor; delete m.__basis;
   }
   const top_concerns = mergedConcerns.slice(0, topN);
+
+  // ★★ 第一屏的补充位置：「**其他具体问题（可回原文核对）**」，最多 1 条。
+  //   为什么需要：门槛只认「内容错误候选（warrant 绑定）」与「L3 反证」，
+  //   于是"图 1→图 3 跳号""表未编号"这类**具体、可核对**的问题永远上不了第一屏（实测踩到）。
+  //   ★ 判据全部是机械事实（不看模型自报的 severity / kind）：
+  //     ① 有原文定位 ② 引文非空且**能在原文里逐字找到** ③ 与已入选的不是同一处
+  const topAnchors = top_concerns.map(m => anchorOf(m)).filter(Boolean);
+  //  ★ 注意：必须从 **rankedAll（全部观察）** 里筛，不能从 mergedConcerns（只含过门槛的）里筛 ——
+  //    否则图号跳号这类**没过门槛**的问题永远筛不到（实测踩过）。
+  const other_concrete = rankedAll.filter(m => {
+    if (top_concerns.includes(m)) return false;
+    const a = anchorOf(m);
+    if (a && topAnchors.some(t => anchorOverlap(t, a) >= 0.5)) return false;
+    const q = String(m.quote ?? '');
+    return !!(m.located && q && fullText && fullText.includes(q));   // 引文必须能逐字回原文
+  }).slice(0, 1).map(m => ({ ...m, why_here: '具体且可回原文核对（引文逐字命中）—— 与"内容错误候选"不是一类依据' }));
   // ★★「可能缺少的关键内容」（方案②）：有上限、措辞不构成"不存在"的断言、带检查范围与全文入口
   const possibly_missing = buildPossiblyMissing({ assessmentArtifact, rubric, parseInfo, limit: missingLimit });
   const key = f => `${f.rubric_item_id}|${f.note}`;
   // ★ 第二条通道：关键缺项／论述不足（与第一屏、待核查都不重叠）
   const usedKeys = new Set([...top_concerns.map(key)]);
   const key_gaps = buildKeyGaps({ assessmentArtifact, rubric, fullText, excludeKeys: usedKeys, limit: gapLimit });
-  const shownK = new Set(top_concerns.map(key));
+  const shownK = new Set([...top_concerns, ...other_concrete].map(key));
   const missingK = new Set(possibly_missing.entries.flatMap(e => e.source_finding_keys ?? []));
   const foldedConcerns = rankedAll.filter(f => !shownK.has(key(f)) && !missingK.has(key(f)));
 
@@ -393,6 +460,8 @@ export function buildTeacherView({ assessmentArtifact, rubric, profile, topN = 3
         + `N=${topN} 只是**上限**，合格不足就少给甚至 0 条（不凑满）。排序：「较严重 → 有 L3 反证 → 可回原文核对」。`
         + `★ 重要但证据不足的进「待核查」区，不伪装成确定问题；门槛**不使用任何模型置信度数字**。`,
       top_concerns,
+      /** ★ 其他具体问题（可回原文核对）：最多 1 条，判据全是机械事实 */
+      other_concrete,
       /** ★ 关键缺项／论述不足（第一屏第二位置；入选硬条件 = 有原文定位，不靠自报 severity） */
       key_gaps,
       /** ★ 可能缺少的关键内容（**不等于"缺失"**）：措辞与检查范围见 authority.notes */

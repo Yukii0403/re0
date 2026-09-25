@@ -12,6 +12,16 @@
   let jobToken = null;      // ★ 加固后：产物需带 job token 才能访问（不再匿名公开）
   let pdfRealtime = false;  // ★ 部署是否开启 PDF 实时分析（由 /api/cases 告知）
 
+  // ★ 额度显示：初始化与**分析完成后**都要刷新（原来只在打开页面时拉一次，分析完仍显示旧数字）
+  async function refreshQuota() {
+    try {
+      const q = await (await fetch('/api/quota')).json();
+      if (q && q.remaining != null) {
+        $('quota').textContent = '（本次演示配额：剩余 ' + q.remaining + ' / ' + q.limit + ' 次实时分析）';
+      }
+    } catch { /* 拿不到就不显示，不影响主流程 */ }
+  }
+
   const fmtSize = n => n > 1024 * 1024 ? (n / 1024 / 1024).toFixed(1) + ' MB' : Math.max(1, Math.round(n / 1024)) + ' KB';
 
   // ---------- 初始化：预置案例 & rubric 列表 ----------
@@ -50,11 +60,7 @@
     } catch (e) {
       $('hint').textContent = '⚠ 无法读取服务端配置：' + e.message;
     }
-    try {
-      const q = await (await fetch('/api/quota')).json();
-      $('quota').textContent = q && q.remaining != null
-        ? '（本次演示配额：剩余 ' + q.remaining + ' / ' + q.limit + ' 次实时分析）' : '';
-    } catch {}
+    refreshQuota();
   })();
 
   function updateInfo() {
@@ -157,6 +163,7 @@
         stopTimer('完成');
         (j.steps || []).forEach(st => { /* 全部标完成 */ });
         addStep('全部完成', 'done');
+        refreshQuota();   // ★ 完成后刷新额度显示（否则页面一直显示分析前的剩余次数）
         // ★ view_url 由服务端下发，含 job token；产物本身不走静态目录
         $('view').src = j.view_url;
         $('openNew').href = j.view_url;

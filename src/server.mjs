@@ -15,7 +15,7 @@ import http from 'node:http';
 import fsp from 'node:fs/promises';
 import path from 'node:path';
 import crypto from 'node:crypto';
-import { execFile } from 'node:child_process';
+import { execFile, spawn } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
@@ -83,10 +83,22 @@ const readBody = (req, maxBytes) => new Promise((res, rej) => {
   req.on('end', () => { if (!tooBig) res(Buffer.concat(chunks)); });
   req.on('error', e => { if (!tooBig) rej(e); });
 });
-const run = (script, args, timeoutMs = 20 * 60 * 1000) => new Promise(res => {
+// ★ 流式执行：把子进程输出**实时**交给 onOutput，页面才能边跑边看到进展
+//   （原来用 execFile 缓冲到结束，实测表现为"跑几分钟页面毫无变化，日志最后才出现"）
+const run = (script, args, timeoutMs = 20 * 60 * 1000, onOutput = null) => new Promise(res => {
   const t0 = Date.now();
-  execFile(NODE, [script, ...args], { cwd: root, maxBuffer: 64 * 1024 * 1024, env: process.env, timeout: timeoutMs, killSignal: 'SIGKILL' },
-    (err, stdout, stderr) => res({ code: err?.code ?? 0, killed: err?.killed === true, stdout: String(stdout), stderr: String(stderr), ms: Date.now() - t0 }));
+  const child = spawn(NODE, [script, ...args], { cwd: root, env: process.env, killSignal: 'SIGKILL' });
+  let out = '', err = '', done = false;
+  const fire = () => { if (onOutput) { try { onOutput(out, err); } catch { /* 回调出错不影响主流程 */ } } };
+  child.stdout.on('data', d => { out += d.toString('utf8'); fire(); });
+  child.stderr.on('data', d => { err += d.toString('utf8'); fire(); });
+  const timer = setTimeout(() => { try { child.kill('SIGKILL'); } catch {} }, timeoutMs);
+  const finish = (code, killed) => {
+    if (done) return; done = true; clearTimeout(timer);
+    res({ code, killed: killed === true, stdout: out, stderr: err, ms: Date.now() - t0 });
+  };
+  child.on('error', e => { err += String(e?.message ?? e); finish(-1, false); });
+  child.on('close', (code, signal) => finish(code ?? (signal ? 1 : 0), signal === 'SIGKILL'));
 });
 
 // ---------------------------------------------------------------- 配额
@@ -145,10 +157,23 @@ async function analyze({ job, caseName, docPath, rubricPath, profilePath, jobDir
     job.log_tail = all.length > 20000 ? (all.slice(0, 10000) + String.fromCharCode(10)
       + '…（中间省略）…' + String.fromCharCode(10) + all.slice(-10000)) : all;
   };
+  // ★ 流式：子进程输出一到就更新 job.log_tail，并把 `▶ 层名 …` / `✔ 层名 完成` 变成可见步骤
+  const streamed = new Set();
+  const onOut = (out, err) => {
+    const all = ('--- stdout ---' + String.fromCharCode(10) + out
+      + String.fromCharCode(10) + '--- stderr ---' + String.fromCharCode(10) + err).trim();
+    job.log_tail = all.length > 20000 ? all.slice(-20000) : all;
+    for (const line of out.split(String.fromCharCode(10))) {
+      const a = line.match(/▶\s*(.+?)\s*…/);
+      if (a && !streamed.has('S:' + a[1])) { streamed.add('S:' + a[1]); step('开始：' + a[1]); continue; }
+      const c = line.match(/✔\s*(.+?)\s*完成/);
+      if (c && !streamed.has('D:' + c[1])) { streamed.add('D:' + c[1]); step('完成：' + c[1]); continue; }
+    }
+  };
 
   step('评测链 L1→L4', { doc: path.relative(root, docPath) });
   const e2e = await run(path.join(here, '_e2e.mjs'),
-    ['--doc', docPath, '--rubric', rubricPath, '--profile', profilePath, '--out', outDir]);
+    ['--doc', docPath, '--rubric', rubricPath, '--profile', profilePath, '--out', outDir], 20 * 60 * 1000, onOut);
   keepTail(e2e);
   if (e2e.code !== 0) {
     job.state = 'failed'; job.error = '评测链失败';
@@ -159,7 +184,7 @@ async function analyze({ job, caseName, docPath, rubricPath, profilePath, jobDir
 
   step('生成教师视图');
   const tv = await run(path.join(here, '_teacherui.mjs'),
-    ['--case', caseName, '--out', outDir, '--rubric', rubricPath, '--profile', profilePath]);
+    ['--case', caseName, '--out', outDir, '--rubric', rubricPath, '--profile', profilePath], 5 * 60 * 1000, onOut);
   keepTail(tv);
   if (tv.code !== 0) { job.state = 'failed'; job.error = '教师视图生成失败'; job.stderr_tail = tv.stderr.slice(-1500); return; }
   step('教师视图完成', { ms: tv.ms });

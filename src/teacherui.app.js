@@ -130,7 +130,24 @@
     let h = '<div class="meta-row"><span class="chip p">' + esc(ids.join(' / ')) + '</span>'
       + '<span class="chip">' + esc(f.kind) + (f.severity ? ' · ' + esc(f.severity) : '') + '</span>' + anchorChip(f) + '</div>';
     h += '<div class="note">' + esc(f.note) + '</div>' + quoteHtml(f);
-    if (f.verification) h += '<div class="tiny">L3 机械验证：' + esc(f.verification.check_id) + ' → <b>' + esc(f.verification.stance) + '</b></div>';
+    // ★ 依据必须说清"是哪一类、结论是什么" —— 不能只丢一个 `→ fail` 让人读成"验证成功"
+    if (f.verification) {
+      const st = f.verification.stance;
+      const label = st === 'fail'
+        ? '<b>未通过</b>（客观检查未满足）'
+        : st === 'pass'
+          ? '通过'
+          : '<b>未能自动核实</b>（不足以当作"机械验证"结论）';
+      h += '<div class="tiny">L3 机械验证：' + label + '　<span class="mono">' + esc(f.verification.check_id) + '</span></div>';
+    }
+    // ★ 合并后的观察：把全部依据列出来（其中 L3 结论按上面同样的口径解释）
+    const eb = f.evidence_basis;
+    if (eb && (eb.warrant_kinds || []).length) {
+      const KN = { l3_check: 'L3 机械检查结论', self_contradiction: '报告自相矛盾（两处原文互斥）',
+        rubric_requirement: 'rubric 条文（对照评分标准原文）', calculation: '计算不自洽' };
+      const ds = (eb.warrant_kinds || []).map(k => KN[k] || k).join('、');
+      h += '<div class="tiny">本条依据：' + esc(ds) + (eb.l3 ? '；另有 L3 检查 ' + esc(eb.l3.check_id) + '（' + (eb.l3.stance === 'fail' ? '<b>未通过</b>' : eb.l3.stance === 'pass' ? '通过' : '<b>未能自动核实</b>') + '）' : '') + '</div>';
+    }
     if (f.warrant && f.warrant.bound) {
       h += '<div class="basis"><div><b>内容错误候选（依据已绑定，内容待核对）</b>'
         + '<span class="tiny"> —— 系统只核对了「原话能定位、解释与依据成文、引用的 check 存在」，<b>未做语义核验</b></span></div>'
@@ -331,9 +348,13 @@
     if (DATA.source) {
       const t = document.createElement('span');
       t.className = 'tiny';
+      // ★ 按**输入类型**分别措辞：纯文本输入本来就没有页面图，不能说成"原件（PDF）不可用"（措辞不适配）
+      const isTextInput = /\.txt$/i.test(String(DATA.doc?.name ?? ''));
       t.textContent = DATA.source.pdf_available
         ? '（原件已内联在本页下方「原件（PDF）」区；原件与抽取文本可能不一致 —— 以原件为准）'
-        : '⚠ 原件（PDF）不可用，只能核对抽取文本';
+        : isTextInput
+          ? '（本报告是**纯文本输入**：没有页面图，定位与引文都以抽取文本为准 —— 这是输入本身的形态，不是提取失败）'
+          : '⚠ 原件未能内联到本页（可能是解析或体积原因），当前只能核对抽取文本 —— 请以原件为准';
       srow.appendChild(t);
     }
   }
