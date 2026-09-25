@@ -307,6 +307,7 @@ server.listen(PORT, () => {
   console.log(`  配额：${quota.used}/${QUOTA_LIMIT}（★ 仅"当前实例运行期间"有效；平台休眠/重建后会重置）｜ 并发上限：${CONCURRENCY}`);
   console.log(`  上传上限：${MAX_UPLOAD_MB} MB ｜ 产物 TTL：${Math.round(JOB_TTL_MS / 3600000)} 小时`);
   const hasKey = !!(process.env.LLM_API_KEY && process.env.LLM_BASE_URL && process.env.LLM_MODEL);
-  console.log(`  模型配置：${hasKey ? '已就绪' : '未配置 → 仅预置案例可用（/api/analyze 返回 503）'}`);
+  console.log(`  模型配置：${hasKey ? '已就绪' : '未配置 → 仅预置案例可用（/api/analyze 返回 503）'}`
+    + (hasKey ? `（base=${String(process.env.LLM_BASE_URL).replace(/\/+$/, '')}  model=${JSON.stringify(String(process.env.LLM_MODEL))}  key=已设置）` : ''));
   console.log('  ★ 上传件与产物不做静态公开：仅经 /api/artifact/<jobId>/<file>?token=… 访问；导出在浏览器端完成。');
 });

@@ -18,9 +18,14 @@
 import { llmTools } from './verify-tools.mjs';
 
 export function llmConfigFromEnv(env = process.env) {
-  const baseUrl = env.LLM_BASE_URL;
-  const apiKey = env.LLM_API_KEY;
-  const model = env.LLM_MODEL;
+  // ★ 一定要 trim：在托管平台的环境变量框里粘贴值时，很容易带上行首/行尾空白。
+  //   实测线上出现过 LLM_MODEL="\tdeepseek-flash" → 模型服务返回 400（模型名非法）。
+  const baseUrl = String(env.LLM_BASE_URL ?? '').trim();
+  const apiKey = String(env.LLM_API_KEY ?? '').trim();
+  const model = String(env.LLM_MODEL ?? '').trim();
+  if (model && /\s/.test(model)) {
+    throw new Error('LLM_MODEL 里含空白字符（' + JSON.stringify(model) + '）—— 请检查环境变量是否粘贴串行');
+  }
   const missing = Object.entries({ LLM_BASE_URL: baseUrl, LLM_API_KEY: apiKey, LLM_MODEL: model })
     .filter(([, v]) => !v).map(([k]) => k);
   if (missing.length) {
