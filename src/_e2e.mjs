@@ -32,10 +32,13 @@ const root = path.join(here, '..');
 const NODE = process.execPath;
 
 const argOf = (k, d) => { const i = process.argv.indexOf(k); return i >= 0 ? process.argv[i + 1] : d; };
-const DOC = argOf('--doc', path.join(root, 'fixtures/real/cs3223-writeup.pdf'));
-const RUBRIC_PATH = argOf('--rubric', path.join(root, 'design/canonical-rubric.cs3223-test.json'));
-const PROFILE_PATH = argOf('--profile', path.join(root, 'design/rubric-assessment-profile.cs3223-test.json'));
-const SCORES_PATH = argOf('--scores', null);
+const DOC = path.resolve(root, argOf('--doc', 'fixtures/real/cs3223-writeup.pdf'));
+// ★★ 路径一律解析成**绝对路径**：`run()` 起子进程时 cwd 是 src/，
+//   传相对路径（design/x.json、fixtures/y）会被子进程解析成 src/design/x.json → ENOENT（实测踩过）。
+const RUBRIC_PATH = path.resolve(root, argOf('--rubric', 'design/canonical-rubric.cs3223-test.json'));
+const PROFILE_PATH = path.resolve(root, argOf('--profile', 'design/rubric-assessment-profile.cs3223-test.json'));
+const SCORES_RAW = argOf('--scores', null);
+const SCORES_PATH = SCORES_RAW ? path.resolve(root, SCORES_RAW) : null;
 const OUT_DIR = path.resolve(root, argOf('--out', 'fixtures/real/out'));
 const TURNS = String(argOf('--turns', '3'));
 const STUB = process.argv.includes('--stub');
@@ -349,6 +352,10 @@ await fsp.writeFile(path.join(OUT_DIR, CASE + '.e2e' + (STUB ? '.stub' : '') + '
 //   ② 账目偏离 = 这一轮结果不完整（可能只是某层没跑）→ 默认只报告；`--strict` 时才 exit 1
 //   两者不混：结果状态不该让工具"看起来坏了"，工具坏了也不该被当成结果状态。
 eq('★ 账目干净标志与 diffs 一致（ledger_clean ⇔ diffs 为空）', out.ledger_clean === (out.diffs.length === 0), true);
+
+// ★ 防回归：传给子进程的路径参数必须是绝对路径（否则子进程 cwd=src/ 会解析错）
+eq('★★ 传给子进程的路径参数都是绝对路径（防 src/ 前缀拼接 bug）',
+  [RUBRIC_PATH, PROFILE_PATH, DOC, OUT_DIR].filter(Boolean).every(x => path.isAbsolute(x)), true);
 
 rep.push('');
 const verdictLine = bad === 0 && diffs.length === 0 ? 'ALL PASS（账目全平）'
