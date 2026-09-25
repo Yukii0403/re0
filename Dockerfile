@@ -26,7 +26,13 @@ ENV CHROME_PATH=/usr/bin/chromium \
 
 WORKDIR /app
 
-# ★ 本项目**零第三方 npm 依赖** —— 直接拷源码即可，无需 npm install
+# 先只拷依赖声明，利用层缓存
+COPY package.json ./
+# ★ 运行期依赖**必须装**：PDF 文本抽取（pdfjs-dist）、页面图渲染（@napi-rs/canvas）、解压（fflate）。
+#   缺了它们，上传 PDF 会在 L1 直接 ERR_MODULE_NOT_FOUND（线上实测踩过）。
+RUN npm install --omit=dev --no-audit --no-fund
+
+# 再拷源码（本项目除上面三个包外无其他第三方依赖；分析/统计部分全部自研）
 COPY . .
 
 # 运行期会写入的目录（上传件与产物）

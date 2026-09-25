@@ -1,0 +1,19 @@
+{
+  "name": "autograder",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "AutoGrader —— 教师协作式多模态评分（赛事提交版）。运行期依赖：pdfjs-dist（PDF 文本抽取）、@napi-rs/canvas（PDF 页面图渲染，供“查看原文”跳页）、fflate（解压）。",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "start": "node src/server.mjs --port 8080 --web fixtures/web",
+    "selftest": "node src/_selftest.mjs"
+  },
+  "dependencies": {
+    "@napi-rs/canvas": "^1.0.9",
+    "fflate": "^0.8.3",
+    "pdfjs-dist": "^6.3.289"
+  }
+}
