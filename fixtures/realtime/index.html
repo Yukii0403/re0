@@ -61,8 +61,14 @@ a{color:var(--acc)}
   <div class="card">
     <h2>① 选择报告</h2>
     <div class="drop" id="drop">
-      <div><b>把 PDF / TXT 拖到这里</b>，或点击选择文件</div>
-      <div class="tiny" id="hint">支持 .pdf / .txt，单个文件 ≤ 10 MB（PDF 会做页面渲染，便于"查看原文"跳页）</div>
+      <div><b>把 .txt 报告拖到这里</b>，或点击选择文件</div>
+      <div class="tiny" id="hint">支持 .txt / .pdf，单个文件 ≤ 10 MB</div>
+      <div class="notice" style="margin:10px 0 0" id="pdfNotice">
+        ★ <b>当前免费部署建议使用 TXT</b>：PDF 需要整页渲染，内存峰值可达 GB 级，小规格实例会失败。
+        <b>PDF 请看预置案例</b>（含"查看原文"跳页效果）：
+        <a href="/cases/cs3223-writeup.pdf.html" target="_blank" rel="noopener">打开 PDF 预置案例</a>
+        <span class="tiny" id="pdfCap"></span>
+      </div>
       <input type="file" id="file" accept=".pdf,.txt" style="display:none">
     </div>
     <div class="row">

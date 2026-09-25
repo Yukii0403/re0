@@ -10,6 +10,7 @@
   let rubrics = [];
   let timer = null, t0 = 0;
   let jobToken = null;      // ★ 加固后：产物需带 job token 才能访问（不再匿名公开）
+  let pdfRealtime = false;  // ★ 部署是否开启 PDF 实时分析（由 /api/cases 告知）
 
   const fmtSize = n => n > 1024 * 1024 ? (n / 1024 / 1024).toFixed(1) + ' MB' : Math.max(1, Math.round(n / 1024)) + ' KB';
 
@@ -25,6 +26,10 @@
         sel.appendChild(o);
       });
       rubrics = j.rubrics || [];
+      // ★ 部署能力：未开启 PDF 实时分析时，选到 PDF 立即提示（不让评委白等几分钟）
+      pdfRealtime = j.pdf_realtime === true;
+      const cap = document.getElementById('pdfCap');
+      if (cap) cap.textContent = pdfRealtime ? '（本部署已开启 PDF 实时分析）' : '（本部署未开启 PDF 实时分析）';
       const rs = $('rubric');
       rubrics.forEach(rb => {
         const o = document.createElement('option');
@@ -69,6 +74,18 @@
   function takeFile(f) {
     const okExt = /\.(pdf|txt)$/i.test(f.name);
     if (!okExt) { alert('只支持 .pdf / .txt'); return; }
+    if (/\.pdf$/i.test(f.name) && !pdfRealtime) {
+      $('error').style.display = 'block';
+      $('error').className = 'err';
+      $('error').innerHTML = '<b>本部署未开启 PDF 实时分析</b>'
+        + '<div class="tiny" style="margin-top:6px">PDF 需要整页渲染（内存峰值可达 GB 级），免费档会失败。'
+        + '请改用 <b>.txt</b> 报告；想看 PDF 的完整效果请用预置案例。'
+        + '<div style="margin-top:8px"><a href="/cases/cs3223-writeup.pdf.html" target="_blank" rel="noopener"><button>打开 PDF 预置案例</button></a></div></div>';
+      picked = null; fileDataB64 = null;
+      $('picked').textContent = '（已拒绝 PDF：本部署未开启 PDF 实时分析）';
+      return;
+    }
+    $('error').style.display = 'none';
     if (f.size > MAX_MB * 1024 * 1024) { alert('文件超过 ' + MAX_MB + ' MB'); return; }
     picked = { name: f.name, size: f.size, kind: /\.pdf$/i.test(f.name) ? 'pdf' : 'text' };
     fileDataB64 = null;

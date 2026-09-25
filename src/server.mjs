@@ -34,6 +34,10 @@ const MAX_UPLOAD_MB = Number(process.env.REALTIME_MAX_UPLOAD_MB ?? 10);
 const QUOTA_LIMIT = Number(process.env.REALTIME_QUOTA ?? 6);
 const CONCURRENCY = Math.max(1, Number(process.env.REALTIME_CONCURRENCY ?? 1));
 const QUOTA_FILE = path.join(UPLOADS, '.quota.json');
+// ★ 实时 PDF 能力开关：PDF 要渲染整页图，内存峰值可达 GB 级；小规格实例（如免费档）会 OOM。
+//   默认关闭 → 上传 PDF 会被**立即拒绝**并指引去看预置案例（避免"等几分钟才失败"的糟糕体验）。
+//   有大内存的部署可设 REALTIME_PDF=1 打开。
+const PDF_REALTIME = process.env.REALTIME_PDF === '1';
 const JOB_TTL_MS = Number(process.env.REALTIME_JOB_TTL_MS ?? 6 * 60 * 60 * 1000);   // 6 小时后产物不再可取
 
 const PRESETS = [
@@ -176,8 +180,15 @@ const server = http.createServer(async (req, res) => {
         presets: PRESETS,
         rubrics: [...new Set(PRESETS.map(x => x.rubric))],
         quota: { limit: QUOTA_LIMIT, used: quota.used, remaining: quotaLeft(),
-          scope: '本次实例运行期间有效（写在实例本地磁盘；平台休眠/重建实例后可能重置）' },
+          // ★ 如实且明确：这不是费用上限，实例重建即归零 → 不能用它做成本控制
+          scope: '仅本实例内存计数：实例重建/休眠后即归零，**不是**跨实例的费用上限；'
+            + '真正的成本上限请在模型服务商侧设置额度' },
         limit_mb: MAX_UPLOAD_MB,
+        pdf_realtime: PDF_REALTIME,
+        pdf_note: PDF_REALTIME
+          ? '本部署已开启 PDF 实时分析（需要较大内存）。'
+          : '当前免费部署**建议使用 TXT**（PDF 需要整页渲染，内存峰值可达 GB 级，小规格实例会失败）；'
+            + '要看 PDF 的完整效果请用**预置案例**。',
         note: '★ 预置案例的评价是离线预生成产物（不是实时分析）。实时分析需服务端配置模型环境变量；'
           + '上传原件与产物**不公开**，仅通过带 job token 的接口访问。',
       });
@@ -201,6 +212,13 @@ const server = http.createServer(async (req, res) => {
         const approx = Math.floor(body.file_base64.length * 3 / 4);
         if (approx > MAX_UPLOAD_MB * 1024 * 1024) return json(res, 413, { error: '文件超过 ' + MAX_UPLOAD_MB + ' MB 限制' });
         if (!/\.(pdf|txt)$/i.test(body.file_name)) return json(res, 400, { error: '只支持 .pdf / .txt' });
+        // ★ PDF 在未开启实时 PDF 能力的部署上**立即拒绝**（比等几分钟后 OOM 失败友好得多）
+        if (/\.pdf$/i.test(body.file_name) && !PDF_REALTIME) {
+          return json(res, 422, {
+            error: '本部署未开启 PDF 实时分析（PDF 需整页渲染，内存峰值可达 GB 级）',
+            hint: '请改用 .txt 报告提交；想看 PDF 的完整效果（含"查看原文"跳页），请打开预置案例：/cases/cs3223-writeup.pdf.html',
+          });
+        }
       }
       // ② 配额（持久化，重启不清零）
       if (quotaLeft() <= 0) return json(res, 429, { error: '今日演示配额已用完（' + quota.used + '/' + QUOTA_LIMIT + '）',
@@ -305,7 +323,7 @@ server.listen(PORT, () => {
   console.log(`AutoGrader 服务端已启动：http://localhost:${PORT}`);
   console.log(`  静态站：${path.relative(root, WEB)} ｜ 实时页：/realtime/`);
   console.log(`  配额：${quota.used}/${QUOTA_LIMIT}（★ 仅"当前实例运行期间"有效；平台休眠/重建后会重置）｜ 并发上限：${CONCURRENCY}`);
-  console.log(`  上传上限：${MAX_UPLOAD_MB} MB ｜ 产物 TTL：${Math.round(JOB_TTL_MS / 3600000)} 小时`);
+  console.log(`  上传上限：${MAX_UPLOAD_MB} MB ｜ 产物 TTL：${Math.round(JOB_TTL_MS / 3600000)} 小时 ｜ PDF 实时：${PDF_REALTIME ? '开' : '关（建议用 TXT）'}`);
   const hasKey = !!(process.env.LLM_API_KEY && process.env.LLM_BASE_URL && process.env.LLM_MODEL);
   console.log(`  模型配置：${hasKey ? '已就绪' : '未配置 → 仅预置案例可用（/api/analyze 返回 503）'}`
     + (hasKey ? `（base=${String(process.env.LLM_BASE_URL).replace(/\/+$/, '')}  model=${JSON.stringify(String(process.env.LLM_MODEL))}  key=已设置）` : ''));
