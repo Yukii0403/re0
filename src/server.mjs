@@ -130,7 +130,14 @@ async function analyze({ job, caseName, docPath, rubricPath, profilePath, jobDir
   const outDir = jobDir;   // ★ 该任务的所有产物只落在自己的目录里
   job.state = 'running';
   const step = (name, extra = {}) => { job.steps.push({ name, at: new Date().toISOString(), ...extra }); };
-  const keepTail = r => { job.log_tail = (r.stdout + r.stderr).trim().split(String.fromCharCode(10)).slice(-14).join(String.fromCharCode(10)); };
+  // ★ 排障：保留**完整输出**（上限 20KB），而不是尾部若干行 ——
+  //   线上失败时 `_e2e` 会把错误写进 stdout，尾部只剩"账目全平"之类的成功信息，真错会被截掉。
+  const keepTail = r => {
+    const all = ('--- stdout ---' + String.fromCharCode(10) + r.stdout
+      + String.fromCharCode(10) + '--- stderr ---' + String.fromCharCode(10) + r.stderr).trim();
+    job.log_tail = all.length > 20000 ? (all.slice(0, 10000) + String.fromCharCode(10)
+      + '…（中间省略）…' + String.fromCharCode(10) + all.slice(-10000)) : all;
+  };
 
   step('评测链 L1→L4', { doc: path.relative(root, docPath) });
   const e2e = await run(path.join(here, '_e2e.mjs'),
