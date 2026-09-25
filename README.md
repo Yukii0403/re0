@@ -79,6 +79,9 @@ python -m http.server 8000 --directory fixtures/web
 
 ### 2.2 服务端（支持上传 + 真实分析）
 
+> ★ **运行环境要求：Node ≥ 22**（PDF 抽取依赖的 `pdfjs-dist@6` 使用了 Node 22 才有的 `Promise.withResolvers`）。
+> 依赖由 `package.json` 声明，安装：`npm install --omit=dev`。
+
 ```bash
 # 1) 配置环境变量（见 §四；密钥只从环境变量读取，不写入任何文件）
 # 2) 启动

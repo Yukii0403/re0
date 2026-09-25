@@ -3,6 +3,9 @@
 # ★ 为什么需要 Chromium：上传 PDF 时要渲染整页图片，教师视图才能"跳页看原件"。
 #   （若宿主无法装 Chromium，功能仍可用，只是教师视图退回"抽取文本"定位 —— 见 README §六 边界说明。）
 #
+# ★ 必须 Node 22+：pdfjs-dist@6 使用了 Promise.withResolvers（Node 22 才有）。
+#   用 Node 20 会在 PDF 抽取时抛 "Promise.withResolvers is not a function"（线上实测踩过）。
+#
 # 构建：docker build -t autograder .
 # 运行：docker run -p 8080:8080 \
 #         -e LLM_BASE_URL=https://api.deepseek.com/v1 \
@@ -11,7 +14,7 @@
 #         autograder
 #      → 打开 http://localhost:8080/（预置案例）与 http://localhost:8080/realtime/（实时分析）
 
-FROM node:20-bookworm-slim
+FROM node:22-bookworm-slim
 
 # Chromium 用于 PDF→页面图渲染；字体保证中文/数学符号正常
 RUN apt-get update \

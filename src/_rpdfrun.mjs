@@ -19,6 +19,18 @@ const shot = (url, name, h) => new Promise(res => {
     { timeout: 240000 }, e => res(e ? 'ERR' : 'ok'));
 });
 
+// 先等实例重建（判据：配额 used 归零，说明新实例磁盘为空；本次构建含 npm install 会更久）
+console.log('=== 等待 Render 重建（含 npm install，可能 5–15 分钟）===');
+let ready = false;
+for (let i = 0; i < 60; i++) {
+  let q = null;
+  try { const r = await fetch(B + '/api/quota'); if (r.ok) q = await r.json(); } catch {}
+  console.log('  [' + (i * 20) + 's] ' + (q ? ('used=' + q.used) : '服务不可用（构建中）'));
+  if (q && q.used === 0) { ready = true; console.log('  → 新实例就绪'); break; }
+  await new Promise(s => setTimeout(s, 20000));
+}
+if (!ready) console.log('  （20 分钟未见归零：可能未开启自动部署，仍继续测一次）');
+
 const size = fs.statSync(PDF).size;
 console.log('=== 线上 PDF 实测 ===');
 console.log('样本：' + path.basename(PDF) + '（' + (size / 1024).toFixed(0) + ' KB，CS3223 数据库课程实验报告）');
