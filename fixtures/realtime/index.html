@@ -61,13 +61,13 @@ a{color:var(--acc)}
   <div class="card">
     <h2>① 选择报告</h2>
     <div class="drop" id="drop">
-      <div><b>把 .txt 报告拖到这里</b>，或点击选择文件</div>
+      <div><b>把报告拖到这里</b>，或点击选择文件</div>
       <div class="tiny" id="hint">支持 .txt / .pdf，单个文件 ≤ 10 MB</div>
       <div class="notice" style="margin:10px 0 0" id="pdfNotice">
-        ★ <b>当前免费部署建议使用 TXT</b>：PDF 需要整页渲染，内存峰值可达 GB 级，小规格实例会失败。
-        <b>PDF 请看预置案例</b>（含"查看原文"跳页效果）：
+        ★ <b>建议上传 .txt</b>（更快，<span id="etaTxt">约 5–6 分钟</span>）。
+        <b>PDF 也可以上传</b>，但它需要把整页渲染成图，<b>耗时更长</b>（<span id="etaPdf">约 6–10 分钟</span>）<span id="pdfCap"></span>。
+        <br>想看 PDF 的完整效果（含"查看原文"跳页）也可直接用<b>预置案例</b>：
         <a href="/cases/cs3223-writeup.pdf.html" target="_blank" rel="noopener">打开 PDF 预置案例</a>
-        <span class="tiny" id="pdfCap"></span>
       </div>
       <input type="file" id="file" accept=".pdf,.txt" style="display:none">
     </div>

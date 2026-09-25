@@ -34,10 +34,13 @@ const MAX_UPLOAD_MB = Number(process.env.REALTIME_MAX_UPLOAD_MB ?? 10);
 const QUOTA_LIMIT = Number(process.env.REALTIME_QUOTA ?? 6);
 const CONCURRENCY = Math.max(1, Number(process.env.REALTIME_CONCURRENCY ?? 1));
 const QUOTA_FILE = path.join(UPLOADS, '.quota.json');
-// ★ 实时 PDF 能力开关：PDF 要渲染整页图，内存峰值可达 GB 级；小规格实例（如免费档）会 OOM。
-//   默认关闭 → 上传 PDF 会被**立即拒绝**并指引去看预置案例（避免"等几分钟才失败"的糟糕体验）。
-//   有大内存的部署可设 REALTIME_PDF=1 打开。
+// ★ PDF 能力标志（只影响**文案与预计等待时间**，**不作为拒绝依据**）：
+//   PDF 需要把整页渲染成图（"查看原文"跳页要用），耗时与内存都明显高于纯文本。
+//   REALTIME_PDF=1 表示该部署内存充足、PDF 预期能跑完；默认 0 → 提示"可能较慢/可能失败"。
 const PDF_REALTIME = process.env.REALTIME_PDF === '1';
+// 线上实测：TXT 全链约 5–6 分钟（免费档实测 325s）。PDF 需额外渲染整页图，给出更长的预计区间。
+const ETA_TXT = '约 5–6 分钟';
+const ETA_PDF = PDF_REALTIME ? '约 6–10 分钟' : '约 6–10 分钟（本部署内存较小，渲染阶段有可能失败）';
 const JOB_TTL_MS = Number(process.env.REALTIME_JOB_TTL_MS ?? 6 * 60 * 60 * 1000);   // 6 小时后产物不再可取
 
 const PRESETS = [
@@ -185,10 +188,12 @@ const server = http.createServer(async (req, res) => {
             + '真正的成本上限请在模型服务商侧设置额度' },
         limit_mb: MAX_UPLOAD_MB,
         pdf_realtime: PDF_REALTIME,
-        pdf_note: PDF_REALTIME
-          ? '本部署已开启 PDF 实时分析（需要较大内存）。'
-          : '当前免费部署**建议使用 TXT**（PDF 需要整页渲染，内存峰值可达 GB 级，小规格实例会失败）；'
-            + '要看 PDF 的完整效果请用**预置案例**。',
+        eta_txt: ETA_TXT,
+        eta_pdf: ETA_PDF,
+        pdf_note: '**建议上传 .txt**（更快，' + ETA_TXT + '）。'
+          + 'PDF 也可以上传，但它需要把整页渲染成图，**耗时更长**（' + ETA_PDF + '）；'
+          + (PDF_REALTIME ? '' : '本部署内存较小，PDF 在渲染阶段**有可能失败** —— 失败时请改用 TXT，')
+          + '想看 PDF 的完整效果（含"查看原文"跳页）也可直接用**预置案例**。',
         note: '★ 预置案例的评价是离线预生成产物（不是实时分析）。实时分析需服务端配置模型环境变量；'
           + '上传原件与产物**不公开**，仅通过带 job token 的接口访问。',
       });
@@ -212,13 +217,7 @@ const server = http.createServer(async (req, res) => {
         const approx = Math.floor(body.file_base64.length * 3 / 4);
         if (approx > MAX_UPLOAD_MB * 1024 * 1024) return json(res, 413, { error: '文件超过 ' + MAX_UPLOAD_MB + ' MB 限制' });
         if (!/\.(pdf|txt)$/i.test(body.file_name)) return json(res, 400, { error: '只支持 .pdf / .txt' });
-        // ★ PDF 在未开启实时 PDF 能力的部署上**立即拒绝**（比等几分钟后 OOM 失败友好得多）
-        if (/\.pdf$/i.test(body.file_name) && !PDF_REALTIME) {
-          return json(res, 422, {
-            error: '本部署未开启 PDF 实时分析（PDF 需整页渲染，内存峰值可达 GB 级）',
-            hint: '请改用 .txt 报告提交；想看 PDF 的完整效果（含"查看原文"跳页），请打开预置案例：/cases/cs3223-writeup.pdf.html',
-          });
-        }
+        // ★ 不拒绝 PDF：按 Yukii 的要求"建议 TXT，但真上传 PDF 就说明等待时间"（见下方 202 响应里的 eta_note）
       }
       // ② 配额（持久化，重启不清零）
       if (quotaLeft() <= 0) return json(res, 429, { error: '今日演示配额已用完（' + quota.used + '/' + QUOTA_LIMIT + '）',
@@ -266,8 +265,14 @@ const server = http.createServer(async (req, res) => {
       analyze({ job, caseName, docPath, rubricPath, profilePath, jobDir })
         .catch(e => { job.state = 'failed'; job.error = String(e); });
       // ★ token 只返回给提交者本人
+      const isPdfJob = /\.pdf$/i.test(caseName);
       return json(res, 202, { job_id: job.id, job_token: job.token, poll: '/api/job/' + job.id,
-        quota: { limit: QUOTA_LIMIT, used: quota.used, remaining: quotaLeft() } });
+        quota: { limit: QUOTA_LIMIT, used: quota.used, remaining: quotaLeft() },
+        source_kind: isPdfJob ? 'pdf' : 'text',
+        eta_note: isPdfJob
+          ? ('PDF 需要整页渲染，预计等待 ' + ETA_PDF + '（TXT ' + ETA_TXT + '）。'
+            + (PDF_REALTIME ? '' : '本部署内存较小，若长时间无进展或失败，请改用 TXT，或查看预置案例。'))
+          : ('预计等待 ' + ETA_TXT + '。') });
     }
 
     // ---------- 任务状态（需 token）----------
@@ -323,7 +328,7 @@ server.listen(PORT, () => {
   console.log(`AutoGrader 服务端已启动：http://localhost:${PORT}`);
   console.log(`  静态站：${path.relative(root, WEB)} ｜ 实时页：/realtime/`);
   console.log(`  配额：${quota.used}/${QUOTA_LIMIT}（★ 仅"当前实例运行期间"有效；平台休眠/重建后会重置）｜ 并发上限：${CONCURRENCY}`);
-  console.log(`  上传上限：${MAX_UPLOAD_MB} MB ｜ 产物 TTL：${Math.round(JOB_TTL_MS / 3600000)} 小时 ｜ PDF 实时：${PDF_REALTIME ? '开' : '关（建议用 TXT）'}`);
+  console.log(`  上传上限：${MAX_UPLOAD_MB} MB ｜ 产物 TTL：${Math.round(JOB_TTL_MS / 3600000)} 小时 ｜ PDF 支持：${PDF_REALTIME ? '已开启（内存充足）' : '可以上传但较慢、可能失败（建议 TXT）'}`);
   const hasKey = !!(process.env.LLM_API_KEY && process.env.LLM_BASE_URL && process.env.LLM_MODEL);
   console.log(`  模型配置：${hasKey ? '已就绪' : '未配置 → 仅预置案例可用（/api/analyze 返回 503）'}`
     + (hasKey ? `（base=${String(process.env.LLM_BASE_URL).replace(/\/+$/, '')}  model=${JSON.stringify(String(process.env.LLM_MODEL))}  key=已设置）` : ''));

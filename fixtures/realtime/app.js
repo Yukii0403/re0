@@ -29,7 +29,10 @@
       // ★ 部署能力：未开启 PDF 实时分析时，选到 PDF 立即提示（不让评委白等几分钟）
       pdfRealtime = j.pdf_realtime === true;
       const cap = document.getElementById('pdfCap');
-      if (cap) cap.textContent = pdfRealtime ? '（本部署已开启 PDF 实时分析）' : '（本部署未开启 PDF 实时分析）';
+      if (cap) cap.textContent = pdfRealtime ? '（本部署内存充足，PDF 预期可跑完）' : '（本部署内存较小，PDF 有可能失败）';
+      const et = document.getElementById('etaTxt'), ep = document.getElementById('etaPdf');
+      if (et && j.eta_txt) et.textContent = j.eta_txt;
+      if (ep && j.eta_pdf) ep.textContent = j.eta_pdf;
       const rs = $('rubric');
       rubrics.forEach(rb => {
         const o = document.createElement('option');
@@ -74,18 +77,19 @@
   function takeFile(f) {
     const okExt = /\.(pdf|txt)$/i.test(f.name);
     if (!okExt) { alert('只支持 .pdf / .txt'); return; }
-    if (/\.pdf$/i.test(f.name) && !pdfRealtime) {
+    // ★ 不拦截 PDF：只是**说明等待时间**（建议 TXT，但 PDF 照样能提交）
+    if (/\.pdf$/i.test(f.name)) {
       $('error').style.display = 'block';
-      $('error').className = 'err';
-      $('error').innerHTML = '<b>本部署未开启 PDF 实时分析</b>'
-        + '<div class="tiny" style="margin-top:6px">PDF 需要整页渲染（内存峰值可达 GB 级），免费档会失败。'
-        + '请改用 <b>.txt</b> 报告；想看 PDF 的完整效果请用预置案例。'
-        + '<div style="margin-top:8px"><a href="/cases/cs3223-writeup.pdf.html" target="_blank" rel="noopener"><button>打开 PDF 预置案例</button></a></div></div>';
-      picked = null; fileDataB64 = null;
-      $('picked').textContent = '（已拒绝 PDF：本部署未开启 PDF 实时分析）';
-      return;
+      $('error').className = 'notice';
+      const eta = ($('etaPdf') && $('etaPdf').textContent) || '约 6–10 分钟';
+      $('error').innerHTML = '<b>已选 PDF</b>：需要把整页渲染成图，<b>等待时间更长（' + eta + '）</b>'
+        + (pdfRealtime ? '' : '；本部署内存较小，PDF 有可能失败')
+        + '。如果赶时间，建议改用 <b>.txt</b>（更快）。'
+        + '<div class="tiny" style="margin-top:6px">仍想直接看 PDF 效果，也可用预置案例：'
+        + '<a href="/cases/cs3223-writeup.pdf.html" target="_blank" rel="noopener">打开 PDF 预置案例</a></div>';
+    } else {
+      $('error').style.display = 'none';
     }
-    $('error').style.display = 'none';
     if (f.size > MAX_MB * 1024 * 1024) { alert('文件超过 ' + MAX_MB + ' MB'); return; }
     picked = { name: f.name, size: f.size, kind: /\.pdf$/i.test(f.name) ? 'pdf' : 'text' };
     fileDataB64 = null;
@@ -131,6 +135,7 @@
       return;
     }
     jobToken = job.job_token || null;
+    if (job.eta_note) setStatus(job.eta_note);
     poll(job.job_id);
   };
 

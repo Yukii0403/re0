@@ -34,16 +34,24 @@ console.log('=== A. 默认（PDF 实时关闭，即免费档配置）===');
 let srv = launch(false); await ready();
 const c = await (await fetch(B + '/api/cases')).json();
 ck('/api/cases 告知 pdf_realtime=false', c.pdf_realtime === false, String(c.pdf_realtime));
-ck('pdf_note 明确"建议用 TXT + PDF 看预置案例"',
-  /建议使用 TXT/.test(c.pdf_note) && /预置案例/.test(c.pdf_note), String(c.pdf_note).slice(0, 60));
+ck('pdf_note 明确"建议 TXT，但 PDF 也可以 + 给时间"',
+  /建议上传 \.txt/.test(c.pdf_note) && /PDF 也可以上传/.test(c.pdf_note) && /分钟/.test(c.pdf_note),
+  String(c.pdf_note).slice(0, 80));
 ck('配额 scope 明确"不是跨实例的费用上限"',
   /不是.*费用上限/.test(c.quota.scope) && /归零/.test(c.quota.scope), String(c.quota.scope).slice(0, 50));
-const rPdf = await post('should-reject.pdf', pdfB64);
-const jPdf = await rPdf.json().catch(() => ({}));
-ck('上传 PDF → 422 立即拒绝（不让用户白等）', rPdf.status === 422, 'HTTP ' + rPdf.status);
-ck('拒绝时给出可点的预置案例指引', /预置案例|\/cases\//.test(String(jPdf.hint || '')), String(jPdf.hint || '').slice(0, 70));
+// ★ 并发上限为 1：任务一旦入队就会占住并发，所以先测 TXT，再测 PDF
 const rTxt = await post('ok.txt', txtB64);
 ck('上传 TXT → 202（正常入队）', rTxt.status === 202, 'HTTP ' + rTxt.status);
+if (rTxt.status === 202) { const jt = await rTxt.json(); ck('TXT 的 eta_note 说明预计时间', /预计等待/.test(String(jt.eta_note || '')), String(jt.eta_note || '').slice(0, 50)); }
+srv.kill('SIGKILL'); await new Promise(s => setTimeout(s, 800));
+
+// 重启一个干净实例，再单独验证 PDF 被放行
+srv = launch(false); await ready();
+const rPdf = await post('accepted.pdf', pdfB64);
+const jPdf = await rPdf.json().catch(() => ({}));
+ck('上传 PDF → 202 放行（不拒绝，只提示等待时间）', rPdf.status === 202, 'HTTP ' + rPdf.status);
+ck('202 响应带 source_kind=pdf 与 eta_note（说明等待时间）',
+  jPdf.source_kind === 'pdf' && /预计等待/.test(String(jPdf.eta_note || '')), String(jPdf.eta_note || '').slice(0, 80));
 srv.kill('SIGKILL'); await new Promise(s => setTimeout(s, 600));
 
 console.log('\n=== B. REALTIME_PDF=1（大内存部署）===');
@@ -51,7 +59,7 @@ srv = launch(true); await ready();
 const c2 = await (await fetch(B + '/api/cases')).json();
 ck('pdf_realtime=true', c2.pdf_realtime === true, String(c2.pdf_realtime));
 const rPdf2 = await post('allowed.pdf', pdfB64);
-ck('上传 PDF → 202（已开启时允许）', rPdf2.status === 202 || rPdf2.status === 429, 'HTTP ' + rPdf2.status + '（429=并发占满，亦属放行）');
+ck('REALTIME_PDF=1 时 PDF 同样放行（202/429）', rPdf2.status === 202 || rPdf2.status === 429, 'HTTP ' + rPdf2.status);
 srv.kill('SIGKILL');
 
 console.log('\n==== ' + pass + ' PASS / ' + fail + ' FAIL ====');
