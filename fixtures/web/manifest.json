@@ -1,15 +1,24 @@
 {
   "kind": "static-demo-site",
   "note": "★ 预置案例演示：所有评价为离线预生成产物，不是实时分析。无任何密钥。",
-  "generated_at": "2026-09-25T12:26:04.937Z",
+  "generated_at": "2026-09-25T18:09:38.578Z",
   "cases": [
+    {
+      "id": "demo-hash-lookup.txt",
+      "title": "哈希索引性能实验 · 新报告 + 新 rubric",
+      "kind": "text",
+      "file": "cases/demo-hash-lookup.txt.html",
+      "bytes": 64261,
+      "sha256": "35efdbcfd242f345",
+      "source": "项目专门编写的合成演示数据（非真实学生作业）"
+    },
     {
       "id": "cs3223-writeup.pdf",
       "title": "CS3223 数据库实验报告（真实 PDF）",
       "kind": "pdf",
       "file": "cases/cs3223-writeup.pdf.html",
-      "bytes": 2212421,
-      "sha256": "c217fa102a0068cf",
+      "bytes": 2214294,
+      "sha256": "2e2615e73fd9620a",
       "source": "GitHub 上的 CS3223-DBMS-Project 公开课程报告"
     },
     {
@@ -17,8 +26,8 @@
       "title": "单摆实验报告 · VerAs 数据集（纯文本）",
       "kind": "text",
       "file": "cases/2019-calculus-RR03-0503.txt.html",
-      "bytes": 80280,
-      "sha256": "bfa37cfdf92c4c4d",
+      "bytes": 82088,
+      "sha256": "944f196068ff0abb",
       "source": "VerAs（自动化评分研究）公开数据集"
     }
   ]

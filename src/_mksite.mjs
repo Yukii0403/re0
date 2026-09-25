@@ -22,6 +22,19 @@ const NODE = process.execPath;
 
 const CASES = [
   {
+    id: 'demo-hash-lookup.txt',
+    title: '哈希索引性能实验 · 新报告 + 新 rubric',
+    kind: 'text',
+    rubric: 'fixtures/demo-new-rubric/rubric-hash-lookup.txt',
+    prebuilt: 'fixtures/demo-new-rubric/demo-hash-lookup.txt.teacher-ui.html',
+    inputs: {
+      report: 'fixtures/demo-new-rubric/demo-hash-lookup.txt',
+      rubric: 'fixtures/demo-new-rubric/rubric-hash-lookup.txt',
+    },
+    blurb: '一份全新合成报告与独立上传的 40 分 TXT rubric，先经公网实时站的真实模型全链分析，再固化为本静态案例。可核对计算、解释及实验局限；教师确认评价与给分仍由页面完成。',
+    source: '项目专门编写的合成演示数据（非真实学生作业）',
+  },
+  {
     id: 'cs3223-writeup.pdf',
     title: 'CS3223 数据库实验报告（真实 PDF）',
     kind: 'pdf',
@@ -50,18 +63,28 @@ const run = (script, args) => new Promise((res, rej) => {
 });
 
 await fsp.mkdir(path.join(WEB, 'cases'), { recursive: true });
+await fsp.mkdir(path.join(WEB, 'sources'), { recursive: true });
 
 const made = [];
 for (const c of CASES) {
   process.stdout.write(`生成 ${c.id} … `);
-  await run(path.join(here, '_teacherui.mjs'), [
-    '--case', c.id, '--out', c.out, '--rubric', c.rubric, '--profile', c.profile,
-  ]);
-  // 生成物在 <out>/<case>.teacher-ui.html → 拷进站点的 cases/
-  const src = path.join(root, c.out, c.id + '.teacher-ui.html');
+  if (!c.prebuilt) {
+    await run(path.join(here, '_teacherui.mjs'), [
+      '--case', c.id, '--out', c.out, '--rubric', c.rubric, '--profile', c.profile,
+    ]);
+  }
+  // 新 rubric 案例复用公网实时站真实模型运行后留存的自包含页面；旧案例按原流程生成。
+  const src = c.prebuilt
+    ? path.join(root, c.prebuilt)
+    : path.join(root, c.out, c.id + '.teacher-ui.html');
   const buf = await fsp.readFile(src);
   const name = c.id + '.html';
   await fsp.writeFile(path.join(WEB, 'cases', name), buf);
+  if (c.inputs) {
+    for (const [kind, source] of Object.entries(c.inputs)) {
+      await fsp.copyFile(path.join(root, source), path.join(WEB, 'sources', `${c.id}.${kind}.txt`));
+    }
+  }
   made.push({ ...c, file: 'cases/' + name, bytes: buf.length, sha256: crypto.createHash('sha256').update(buf).digest('hex').slice(0, 16) });
   console.log(`${Math.round(buf.length / 1024)} KB`);
 }
@@ -101,7 +124,7 @@ H.push('<div class="sub">AI 提出可核对的观察，教师确认与给分 ｜
 H.push('<main>');
 H.push('<div class="notice">⚠️ <b>本站是预置案例演示</b>：页面里的评价、判断与验证结果都是<b>离线预先生成</b>的产物，'
   + '<b>不是实时分析</b>。可以真实操作教师侧的完整闭环（看观察 → 跳原文 → 确认/修改 → 给分 → 评语草稿 → 导出）。'
-  + '真实"上传报告 + 跑模型分析"需要服务端（模型密钥只从环境变量读取，不会进入网页与仓库）。</div>');
+  + '如需现场上传全新报告与 TXT rubric，请用<a href="https://autograder-sotv.onrender.com/realtime/">实时分析站</a>；模型密钥只在服务端。</div>');
 H.push('<h2 style="font-size:15px;color:var(--acc)">选择案例</h2>');
 for (const c of made) {
   H.push('<div class="card">');
@@ -113,6 +136,7 @@ for (const c of made) {
   H.push(`<div class="blurb">${c.blurb}</div>`);
   H.push(`<div class="tiny">数据来源：${esc(c.source)} ｜ 产物指纹 ${c.sha256}</div>`);
   H.push(`<div style="margin-top:12px"><a class="go" href="${c.file}">打开教师视图 →</a></div>`);
+  if (c.inputs) H.push(`<div class="tiny" style="margin-top:8px">核对本案例输入：<a href="sources/${c.id}.report.txt">原始报告 TXT</a> · <a href="sources/${c.id}.rubric.txt">原始 rubric TXT</a>（均为合成演示材料）</div>`);
   H.push('</div>');
 }
 H.push('<div class="card"><h2>在这个 Demo 里可以做什么</h2><ol>');
@@ -124,8 +148,8 @@ H.push('<li><b>生成评语草稿 / 导出教师工作表</b>：草稿只把标�
 H.push('</ol><div class="tiny">★ 页面不显示 AI 档位或分数；评价由 AI 提出，供教师核对。</div></div>');
 H.push('<div class="card"><h2>为什么这里是静态站</h2>');
 H.push('<p class="blurb">评测链（文档解析 → 证据聚焦 → 机械验证 → 条目评估）需要调用模型服务，密钥只能放在服务端。'
-  + '本站把所有产物**离线预生成并内联**，因此可以纯静态部署、离线双击打开，也能保证演示稳定。</p>'
-  + '<div class="tiny">真实上传与实时分析：见仓库 README 的启动说明（Node 服务端，密钥走环境变量）。</div></div>');
+  + '本站把所有产物<b>预先生成并内联</b>，因此可以纯静态部署、离线打开，也能保证演示稳定。</p>'
+  + '<div class="tiny">真实上传与实时分析：<a href="https://autograder-sotv.onrender.com/realtime/">打开实时站</a>（Node 服务端，密钥走环境变量）。</div></div>');
 H.push('</main>');
 H.push(`<footer>生成时间 ${new Date().toISOString()} ｜ 静态演示站 · 无任何密钥 ｜ AutoGrader</footer>`);
 H.push('</body></html>');

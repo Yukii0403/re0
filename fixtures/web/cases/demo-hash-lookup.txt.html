@@ -1,0 +1,607 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>教师视图 · demo-hash-lookup.txt</title>
+<style>
+:root{--bg:#f7f7f5;--card:#fff;--line:#e3e3df;--ink:#1d1d1b;--dim:#6b6b66;--warn:#b45309;--acc:#1f4e79}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.65 -apple-system,"Segoe UI","PingFang SC",system-ui,sans-serif}
+header{position:sticky;top:0;background:#fff;border-bottom:1px solid var(--line);padding:12px 20px;z-index:10}
+header h1{margin:0 0 4px;font-size:16px}
+header .meta{color:var(--dim);font-size:12.5px}
+.banner{background:#fff8e6;border-bottom:1px solid #f0e0b8;color:#7a5a12;padding:8px 20px;font-size:12.5px}
+main{max-width:980px;margin:0 auto;padding:18px 20px 150px}
+h2{font-size:14px;color:var(--acc);margin:18px 0 8px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin:8px 0}
+.card.primary{border-left:4px solid #c2410c}
+.card.pending{border-left:4px solid var(--warn);background:#fffbf2}
+.meta-row{color:var(--dim);font-size:12.5px;margin-bottom:6px}
+.chip{display:inline-block;border:1px solid var(--line);border-radius:999px;padding:1px 8px;font-size:11.5px;color:var(--dim);margin-right:6px;background:#fafaf8}
+.chip.p{background:#eef6ff;border-color:#cfe3f7;color:#1f4e79}
+.chip.w{background:#fff4e5;border-color:#f3d9ae;color:#8a5a09}
+.chip.g{background:#eefaf0;border-color:#c7ecd2;color:#166534}
+.note{margin:6px 0 8px}
+.quote{background:#f4f4f1;border-left:3px solid #cfcfc8;padding:6px 10px;font:13px/1.5 ui-monospace,Consolas,monospace;color:#3a3a36;white-space:pre-wrap;margin:6px 0;max-height:340px;overflow:auto}
+.basis{background:#f6f8fb;border:1px dashed #cbd7e6;border-radius:8px;padding:8px 10px;margin:8px 0;font-size:13.5px}
+.basis b{color:var(--acc)}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:8px}
+button{font:inherit;padding:5px 12px;border:1px solid var(--line);border-radius:7px;background:#fff;cursor:pointer}
+button:hover{background:#f2f2ee}
+button.on{background:#eef6ff;border-color:#9cc4e8}
+button.pri{background:var(--acc);border-color:var(--acc);color:#fff}
+button.pri:hover{background:#173e60}
+.source-action{display:inline-block;font:inherit;padding:5px 12px;border:1px solid var(--line);border-radius:7px;background:#fff;color:var(--ink);text-decoration:none}
+.source-action:hover{background:#f2f2ee}
+input[type=number]{width:78px;font:inherit;padding:4px 8px;border:1px solid var(--line);border-radius:7px}
+input[type=number].on{background:#eefaf0;border-color:#c7ecd2}
+input[type=number].bad{background:#fff5f0;border-color:#c2410c}
+input[type=text]{font:inherit;padding:4px 8px;border:1px solid var(--line);border-radius:7px;width:130px}
+label.chk{font-size:12.5px;color:var(--dim);display:flex;gap:4px;align-items:center}
+textarea{width:100%;font:inherit;padding:6px 8px;border:1px solid var(--line);border-radius:7px;min-height:48px}
+.fold{color:var(--dim);font-size:12.5px;margin-top:6px;cursor:pointer;user-select:none}
+.hidden-box{display:none;margin-top:8px;border-top:1px dashed var(--line);padding-top:8px}
+.level{font-size:12.5px;color:var(--dim);margin-top:6px}
+.level span{display:block;margin:2px 0}
+footer{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--line);padding:10px 20px;display:flex;gap:10px;align-items:center;justify-content:flex-end}
+#draft{white-space:pre-wrap;background:#fbfbf9;border:1px solid var(--line);border-radius:10px;padding:12px 14px;font-size:14px}
+.tiny{color:var(--dim);font-size:12px}
+mark{background:#fff2a8;padding:0 2px}
+.viewer-bar{gap:6px}
+.pagewrap{margin-top:8px;border:1px solid var(--line);border-radius:8px;background:#e9e9e6;padding:8px;overflow:auto;max-height:76vh}
+.pagewrap img{display:block;background:#fff;box-shadow:0 1px 6px rgba(0,0,0,.12);height:auto;margin:0 auto}
+.quotebar{margin-top:8px;background:#fffbe9;border:1px solid #f0e0b8;border-radius:8px;padding:8px 10px;font:13px/1.55 ui-monospace,Consolas,monospace;color:#5a4a12;white-space:pre-wrap;display:none}
+.pagechip{cursor:pointer}
+.card.hit{border-color:#c2410c;box-shadow:0 0 0 2px #ffe8d6}
+</style></head><body>
+<header><h1>教师视图 · demo-hash-lookup.txt</h1>
+<div class="meta">整篇优先观察 → rubric 条目 → 原文 ｜ 教师自行确认评价并给分</div></header>
+<div class="banner">★ 本视图<b>不显示 AI 档位或分数</b>；页面上的评价由 AI 提出，<b>供教师核对</b>。档位描述取自 rubric（参考标准）。标为「依据已绑定，内容待核对」的，系统只核对了原话能否定位、解释与依据是否成文 —— <b>内容是否正确仍需教师判断</b>。</div>
+<main>
+<section><h2>① 整篇：最值得先看的 2 个问题</h2><div id="top"></div><div class="tiny" id="topfold"></div></section>
+<section><h2>待核查 · 可能缺少的关键内容</h2><div id="missing"></div></section>
+<section><h2>② 逐条 rubric（确认 / 修改 / 给分）</h2><div id="items"></div></section>
+<section><h2>③ 评语草稿</h2><div id="draft">（点右下角「生成评语草稿」）</div><div class="tiny">本地模板拼装，用教师给分与已确认的评价生成；正式版措辞由评语层（模型）产出。</div></section>
+<section><h2>原文（抽取文本）</h2><div class="tiny" id="srcnote"></div><div class="row" id="srcrow"></div><div class="quote" id="full"></div></section>
+<section><h2>原件（TXT）</h2><div class="tiny">本次上传的是纯文本报告；上方「原文（抽取文本）」即供核对的原始文字，没有 PDF 页面视图。</div></section>
+</main>
+<footer><span class="tiny" id="stat"></span><label class="chk"><input type="checkbox" id="chkConfirmed"> 我已核对完毕</label><input type="text" id="teacherName" placeholder="教师姓名（可选）"><button id="btnDraft" class="pri">生成评语草稿</button><button id="btnExport">导出教师工作表 JSON</button></footer>
+<script>const DATA = {"pdfUrl":null,"view":{"authority":{"layer_produces_score":false,"view_version":"v1","purpose":"帮助教师快速形成质量判断：整篇优先观察 → rubric 条目 → 原文","ai_grading_hidden":true,"no_ai_score":true,"notes":"本视图**不含** AI 候选档位、AI 判断与任何 AI 分数（这些在主视图隐藏，教师可在完整报告查看，并自行给分）。档位描述来自 rubric 定义，是教师的参考标准，不是 AI 的建议。每条观察都标注了可核查性；标注为\"无原文定位\"的不得当作确定结论。"},"doc":{"name":"demo-hash-lookup.txt","sha256":"7e6e11a2ca0c127e09b2bf8509c52c7c5f10d8bd5669a742e7d1543d5a3807ec","text_file":"demo-hash-lookup.txt.txt","index_file":"demo-hash-lookup.txt.index.json"},"rubric":{"rubric_id":"rb_upload_1226ae16ad560ce6","source_sha256":"1226ae16ad560ce669af7cdd0b7fbe4e2f1a022d42c3c1fd5159bd3eefa71400"},"source_assessment":{"file":"demo-hash-lookup.txt.assessment.json"},"whole_report":{"rule":"入选需**同时**满足：与 rubric 相关 + **有可核对依据** + 值得优先看（较严重，或有 L3 反证）。N=3 只是**上限**，合格不足就少给甚至 0 条（不凑满）。排序：「较严重 → 有 L3 反证 → 可回原文核对」。★ 重要但证据不足的进「待核查」区，不伪装成确定问题；门槛**不使用任何模型置信度数字**。","top_concerns":[{"rubric_item_id":"R2","polarity":"concern","kind":"calculation","severity":"major","warrant":{"student_quote":"因此哈希查询的加速比为 2.16 / 0.03 = 7.2 倍。","student_quote_located":{"offset":{"start":694,"end":726}},"what_is_wrong":"按报告自己给出的表格，N=100,000 时顺序扫描 2.16 ms、哈希查询 0.03 ms，加速比应为 2.16 ÷ 0.03 = 72 倍；报告写成 7.2 倍，缩小了 10 倍，除法的量级算错。","basis_kind":"self_contradiction","basis_detail":"报告两处互相矛盾：结果表第三行“100,000        2.16                0.03”（哈希查询耗时列为 0.03 ms）与正文“因此哈希查询的加速比为 2.16 / 0.03 = 7.2 倍”——以 0.03 为除数时应得 72，而非 7.2。","basis_check":null,"bound":true,"unbound_reasons":[],"binding_scope":"structural_only"},"note":"紧邻耗时数据的加速比结论与表中数值不自洽：表中哈希查询为 0.03 ms，2.16 / 0.03 应为 72 倍，报告写成 7.2 倍，差一个数量级。此错误落在数据呈现的同一段落内，会影响读者对该组数据的核对结论（其性质更接近计算/分析类条目，此处仅作跨条提示）。","quote":"因此哈希查询的加速比为 2.16 / 0.03 = 7.2 倍。","located":{"offset":{"start":694,"end":726},"source_ref":{"file":"demo-hash-lookup.txt","page":1,"entry":"e0017"}},"verification":{"check_id":"ck0001","stance":"unverified"},"anchored":true,"importance_hint":"primary","anchor_note":"已定位到原文","rank_reason":"依据(内容错误候选（依据已绑定，内容待核对）) · 影响理解(计算/推理类（影响理解的代理信号）) · 可核查性(有精确原文定位) · 自报严重程度(major，仅辅助)｜与 R3 指的是同一处（已合并为一条）","priority":341,"rubric_item_ids":["R2","R3"],"merged_from":2,"evidence_basis":{"l3":{"type":"l3","check_id":"ck0001","stance":"unverified"},"l3_all":[{"type":"l3","check_id":"ck0001","stance":"unverified"}],"warrant_kinds":["self_contradiction","rubric_requirement"]}},{"rubric_item_id":"R3","polarity":"concern","kind":"reasoning","severity":"major","warrant":{"student_quote":"本实验已经证明哈希查询在任何数据规模和任何输入分布下都恒定耗时。","student_quote_located":{"offset":{"start":800,"end":832}},"what_is_wrong":"该句把单机、末尾命中、每规模单次查询的结果推广为「任何数据规模和任何输入分布」下的普遍规律，超出数据支持范围；恰当表述应限定为「在本实验的规模范围与末尾命中条件下，哈希查询耗时随 N 变化很小」。","basis_kind":"self_contradiction","basis_detail":"报告自身后文已限定范围：「因此这些数据主要反映本机、末尾命中场景下的单次查询，不能直接代表整个系统的吞吐量。」以及结论「在给定样本和末尾命中条件下，表格支持哈希索引查询更快的观察。」——与「任何数据规模和任何输入分布」的断言直接矛盾。","basis_check":null,"bound":true,"unbound_reasons":[],"binding_scope":"structural_only"},"note":"超出数据的结论：实验只有 3 个规模、单一输入分布（键 0..N-1、固定查询 N-1）、每规模仅 1 次查询，无法支持「任何数据规模和任何输入分布」下的普遍结论。这恰是 R3 要求避免的结论类型。","quote":"本实验已经证明哈希查询在任何数据规模和任何输入分布下都恒定耗时。","located":{"offset":{"start":800,"end":832},"source_ref":{"file":"demo-hash-lookup.txt","page":1,"entry":"e0019"}},"verification":null,"anchored":true,"importance_hint":"primary","anchor_note":"已定位到原文","rank_reason":"依据(内容错误候选（依据已绑定，内容待核对）) · 影响理解(计算/推理类（影响理解的代理信号）) · 可核查性(有精确原文定位) · 自报严重程度(major，仅辅助)｜与 R4 指的是同一处（已合并为一条）","priority":341,"rubric_item_ids":["R3","R4"],"merged_from":2,"evidence_basis":{"l3":null,"l3_all":[],"warrant_kinds":["self_contradiction"]}}],"other_concrete":[],"key_gaps":{"rule":"★ 入选硬条件是「有原文定位」（可回原文核对），**不靠模型自报的 severity**（severity 仅在末位排序时参考）；最多 1 条。这不是\"已证明全文没写\"：有定位的按\"这段做到了什么、尚未说明什么\"表述；无定位的才说检索范围并要求核对原 PDF；提取不完整时只报\"无法确认\"。","limit":1,"candidates_total":4,"entries":[{"rubric_item_id":"R4","kind":"completeness","severity":"minor","page":1,"status":"argument_gap","rubric_requirement":"4. 说明测量局限，并提出有针对性的后续验证方案（5 分）","student_excerpt":{"quote":"后续应加入重复试验、不同键位置、未命中查询、构建成本与内存占用，再判断整体方案是否更优。","context":null},"does_and_misses":"后续方案仅停留在“应加入 X”的清单，缺少可执行设计：未给重复次数与预热策略、离散度/统计显著性口径、构建成本与内存的测量方式，也未定义判定“更优”的指标与阈值。针对性够，可操作性偏弱。","l3":null,"caveat":"★ 这不是\"已证明全文没写\"：上引是学生确实写过的一段，请对照原件核对该条要求是否已被说明。"}]},"possibly_missing":{"rule":"★ 只表示\"在**已解析的文本**里没找到\"，**不表示原文中没有** —— 没有单条引文能证明\"不存在\"，关键词搜索也排除不了\"换一种说法写了\"。提取不完整时一律标\"无法确认\"。每条都给出检查范围与全文入口。","limit":3,"candidates_total":0,"entries":[],"check_scope":{"parsed_chars":1067,"parsed_entries":22,"parse_warnings":0,"extract_reliable":true,"note":"检查范围 = 本次**已解析的**正文（不含以图片/对象形式存在、未被文本捕获的内容）"},"see_full_text":{"index":"demo-hash-lookup.txt.index.json","text":"demo-hash-lookup.txt.txt","hint":"在完整报告 / 原始正文中查看"}},"rank_dimensions":"D1 影响理解(kind 代理) > D2 可核查性 > D3 自报严重程度 → 条目顺序；★ 不把\"模型自报的严重程度\"当第一维；**也不规定\"具体的一律优先\"**","merge_rule":"★ 同一处错误被多个 rubric 条目各报一次时，**合并为一条**并挂全部相关条目（rubric_item_ids），不重复占用第一屏的名额。判据：定位引文归一化后相同。","merged_total":2,"qualified_total":4,"ranked_total":7,"folded_count":5},"items":[{"rubric_item_id":"R1","rubric_text":"1. 交代实验目标、环境、数据生成方法和查询条件（10 分）","strategy_type":"points","level_reference":[],"primary_concern":{"rubric_item_id":"R1","polarity":"concern","kind":"completeness","severity":"minor","warrant":null,"note":"交代偏浅：环境仅一句，未给操作系统、内存、Node 具体小版本等可能影响计时的信息；数据生成只写了键的生成，未说明字符串值的长度/内容生成方式与 Map 的构建时机。属于细节深度不足，不影响四项要素的成立。","quote":null,"located":null,"verification":null,"anchored":false,"importance_hint":"secondary","anchor_note":"⚠ 无原文定位、也无机械验证挂钩：请勿当作确定结论","rank_reason":"依据(普通观察（无绑定依据）) · 影响理解(完整性/缺项类) · 可核查性(无引文) · 自报严重程度(minor，仅辅助)","priority":121},"primary_strength":{"rubric_item_id":"R1","polarity":"strength","kind":"completeness","severity":null,"warrant":null,"note":"实验目标交代明确且可检验：既给出比较对象（顺序扫描 vs 哈希索引）与自变量（记录规模），也点明要回答的问题——结果能否支持理论复杂度判断，而非只报数值。","quote":"比较在不同记录规模下，顺序扫描与哈希索引查询一个已存在键的耗时，并讨论结果能否支持理论复杂度判断。","located":{"offset":{"start":55,"end":104},"source_ref":{"file":"demo-hash-lookup.txt","page":1,"entry":"e0004"}},"verification":null,"anchored":true,"importance_hint":"secondary","anchor_note":"已定位到原文"},"shown_count":2,"folded":{"total":5,"concern":1,"strength":4,"neutral":0,"folded_count":3},"hidden":{"ai_candidate_levels":true,"ai_judgment":true,"ai_score":true,"note":"主视图按交付定位隐藏 AI 候选档位、AI 判断与任何 AI 分数；教师可展开完整报告查看"}},{"rubric_item_id":"R2","rubric_text":"2. 呈现可核对的原始耗时数据与查询实现方式（10 分）","strategy_type":"points","level_reference":[],"primary_concern":{"rubric_item_id":"R2","polarity":"concern","kind":"calculation","severity":"major","warrant":{"student_quote":"因此哈希查询的加速比为 2.16 / 0.03 = 7.2 倍。","student_quote_located":{"offset":{"start":694,"end":726}},"what_is_wrong":"按报告自己给出的表格，N=100,000 时顺序扫描 2.16 ms、哈希查询 0.03 ms，加速比应为 2.16 ÷ 0.03 = 72 倍；报告写成 7.2 倍，缩小了 10 倍，除法的量级算错。","basis_kind":"self_contradiction","basis_detail":"报告两处互相矛盾：结果表第三行“100,000        2.16                0.03”（哈希查询耗时列为 0.03 ms）与正文“因此哈希查询的加速比为 2.16 / 0.03 = 7.2 倍”——以 0.03 为除数时应得 72，而非 7.2。","basis_check":null,"bound":true,"unbound_reasons":[],"binding_scope":"structural_only"},"note":"紧邻耗时数据的加速比结论与表中数值不自洽：表中哈希查询为 0.03 ms，2.16 / 0.03 应为 72 倍，报告写成 7.2 倍，差一个数量级。此错误落在数据呈现的同一段落内，会影响读者对该组数据的核对结论（其性质更接近计算/分析类条目，此处仅作跨条提示）。","quote":"因此哈希查询的加速比为 2.16 / 0.03 = 7.2 倍。","located":{"offset":{"start":694,"end":726},"source_ref":{"file":"demo-hash-lookup.txt","page":1,"entry":"e0017"}},"verification":null,"anchored":true,"importance_hint":"primary","anchor_note":"已定位到原文","rank_reason":"依据(内容错误候选（依据已绑定，内容待核对）) · 影响理解(计算/推理类（影响理解的代理信号）) · 可核查性(有精确原文定位) · 自报严重程度(major，仅辅助)","priority":341},"primary_strength":{"rubric_item_id":"R2","polarity":"strength","kind":"completeness","severity":null,"warrant":null,"note":"以表格形式给出三档规模下两种查询方式的原始耗时（顺序扫描 0.02/0.21/2.16 ms，哈希查询 0.01/0.02/0.03 ms），每档的 N 与对应数值一一对应，读者可直接查阅与换算，满足“原始耗时数据”的呈现要求。","quote":"记录数 N       顺序扫描耗时(ms)    哈希查询耗时(ms)","located":{"offset":{"start":493,"end":529},"source_ref":{"file":"demo-hash-lookup.txt","page":1,"entry":"e0013"}},"verification":null,"anchored":true,"importance_hint":"secondary","anchor_note":"已定位到原文"},"shown_count":2,"folded":{"total":5,"concern":2,"strength":3,"neutral":0,"folded_count":3},"hidden":{"ai_candidate_levels":true,"ai_judgment":true,"ai_score":true,"note":"主视图按交付定位隐藏 AI 候选档位、AI 判断与任何 AI 分数；教师可展开完整报告查看"}},{"rubric_item_id":"R3","rubric_text":"3. 正确计算并解释两种方法的性能差异，避免超出数据的结论（15 分）","strategy_type":"points","level_reference":[],"primary_concern":{"rubric_item_id":"R3","polarity":"concern","kind":"calculation","severity":"major","warrant":{"student_quote":"因此哈希查询的加速比为 2.16 / 0.03 = 7.2 倍。","student_quote_located":{"offset":{"start":694,"end":726}},"what_is_wrong":"正确的是 2.16 ms ÷ 0.03 ms = 72 倍；报告写成 7.2 倍。错误出在除法这一步：216 ÷ 3 = 72，小数点位置被移动，结果缩小了 10 倍。","basis_kind":"rubric_requirement","basis_detail":"R3 要求「正确计算并解释两种方法的性能差异」，报告在同一句里既列了正确算式 2.16 / 0.03，又写出了与算式不符的结果 7.2；2.16 与 0.03 的商为 72。","basis_check":null,"bound":true,"unbound_reasons":[],"binding_scope":"structural_only"},"note":"加速比算错：2.16 ÷ 0.03 = 72，报告写成 7.2 倍，少了一个数量级（10 倍偏差）。R3 明确要求「正确计算……性能差异」，这一要点未做到。配套的 ratio_of 机械检查 ck0001 为 unverified，比值未能机械核验。","quote":"因此哈希查询的加速比为 2.16 / 0.03 = 7.2 倍。","located":{"offset":{"start":694,"end":726},"source_ref":{"file":"demo-hash-lookup.txt","page":1,"entry":"e0017"}},"verification":{"check_id":"ck0001","stance":"unverified","scope":"rubric_item"},"anchored":true,"importance_hint":"primary","anchor_note":"已定位到原文","rank_reason":"依据(内容错误候选（依据已绑定，内容待核对）) · 影响理解(计算/推理类（影响理解的代理信号）) · 可核查性(有精确原文定位) · 自报严重程度(major，仅辅助)","priority":341},"primary_strength":{"rubric_item_id":"R3","polarity":"strength","kind":"reasoning","severity":null,"warrant":null,"note":"对两种方法的差异给出了基于数据的解释：指出顺序扫描耗时随 N 上升、哈希查询变化较小，并用 Map.get 平均 O(1) 与顺序扫描最坏 O(N) 归因，方向正确且与表格三行数据一致。","quote":"表中顺序扫描耗时随 N 增大而上升，而哈希查询变化较小，这与本实验的预期一致。","located":{"offset":{"start":726,"end":765},"source_ref":{"file":"demo-hash-lookup.txt","page":1,"entry":"e0017"}},"verification":null,"anchored":true,"importance_hint":"secondary","anchor_note":"已定位到原文"},"shown_count":2,"folded":{"total":5,"concern":2,"strength":2,"neutral":1,"folded_count":3},"hidden":{"ai_candidate_levels":true,"ai_judgment":true,"ai_score":true,"note":"主视图按交付定位隐藏 AI 候选档位、AI 判断与任何 AI 分数；教师可展开完整报告查看"}},{"rubric_item_id":"R4","rubric_text":"4. 说明测量局限，并提出有针对性的后续验证方案（5 分）","strategy_type":"points","level_reference":[],"primary_concern":{"rubric_item_id":"R4","polarity":"concern","kind":"reasoning","severity":"major","warrant":{"student_quote":"由于 Map.get 的平均时间复杂度为 O(1)，本实验已经证明哈希查询在任何数据规模和任何输入分布下都恒定耗时。","student_quote_located":{"offset":{"start":774,"end":832}},"what_is_wrong":"“已经证明……在任何数据规模和任何输入分布下都恒定耗时”是超出实验证据的结论：本实验只测了三个规模、固定查询键为 N-1 的单次查询，O(1) 是平均复杂度期望而非对“任何输入分布”的实验证明。正确表述应为：本实验数据与 Map.get 平均 O(1) 的预期一致，支持在给定样本与末尾命中条件下哈希查询更快的观察，但不足以推广到任意规模与任意键分布。","basis_kind":"self_contradiction","basis_detail":"同一报告内两处互相矛盾：一处（分析与局限节）称“本实验已经证明哈希查询在任何数据规模和任何输入分布下都恒定耗时”；紧接着同节又写“哈希冲突以及未命中键的查询也没有单独测试”“这些数据主要反映本机、末尾命中场景下的单次查询，不能直接代表整个系统的吞吐量”，结论节亦限定“在给定样本和末尾命中条件下，表格支持哈希索引查询更快的观察”。后两处直接否定了前一处“任何规模、任何分布”的普适结论。","basis_check":null,"bound":true,"unbound_reasons":[],"binding_scope":"structural_only"},"note":"分析节前半段的过度声称与本条要求的“承认局限”自相矛盾：报告一处称实验“已经证明……任何数据规模和任何输入分布下都恒定耗时”，另一处又承认未测哈希冲突、未命中键，数据不能代表整体，说明局限是被列出而非被真正内化。","quote":"由于 Map.get 的平均时间复杂度为 O(1)，本实验已经证明哈希查询在任何数据规模和任何输入分布下都恒定耗时。","located":{"offset":{"start":774,"end":832},"source_ref":{"file":"demo-hash-lookup.txt","page":1,"entry":"e0019"}},"verification":null,"anchored":true,"importance_hint":"primary","anchor_note":"已定位到原文","rank_reason":"依据(内容错误候选（依据已绑定，内容待核对）) · 影响理解(计算/推理类（影响理解的代理信号）) · 可核查性(有精确原文定位) · 自报严重程度(major，仅辅助)","priority":341},"primary_strength":{"rubric_item_id":"R4","polarity":"strength","kind":"completeness","severity":null,"warrant":null,"note":"测量局限写得具体且分条：单次查询、未报告重复次数/预热/耗时离散度；构建 Map 的时间与额外内存未计入；哈希冲突与未命中键未单独测试。覆盖了测量方法层面的主要偏差来源，而非泛泛而谈。","quote":"本次只记录每个规模的一次查询，没有报告重复运行次数、预热方案或耗时离散程度。构建 Map 的时间与额外内存没有计入结果；哈希冲突以及未命中键的查询也没有单独测试。","located":{"offset":{"start":865,"end":946},"source_ref":{"file":"demo-hash-lookup.txt","page":1,"entry":"e0020"}},"verification":null,"anchored":true,"importance_hint":"secondary","anchor_note":"已定位到原文"},"shown_count":2,"folded":{"total":5,"concern":2,"strength":3,"neutral":0,"folded_count":3},"hidden":{"ai_candidate_levels":true,"ai_judgment":true,"ai_score":true,"note":"主视图按交付定位隐藏 AI 候选档位、AI 判断与任何 AI 分数；教师可展开完整报告查看"}}],"unanchored_findings":[{"rubric_item_id":"R1","polarity":"concern","kind":"completeness","note":"交代偏浅：环境仅一句，未给操作系统、内存、Node 具体小版本等可能影响计时的信息；数据生成只写了键的生成，未说明字符串值的长度/内容生成方式与 Map 的构建时机。属于细节深度不足，不影响四项要素的成立。","anchor_note":"⚠ 无原文定位、也无机械验证挂钩：请勿当作确定结论"}],"stats":{"rubric_items":4,"findings_total":20,"findings_shown":8,"findings_folded":12,"anchored":19,"unanchored":1,"anchored_rate":0.95}},"fullText":"计算机专业实验报告：哈希索引与顺序扫描的查询性能比较\n（演示用合成学生报告；不是实际学生作业）\n一、实验目标\n比较在不同记录规模下，顺序扫描与哈希索引查询一个已存在键的耗时，并讨论结果能否支持理论复杂度判断。\n二、环境与方法\n实验使用 Node.js 20，在一台 8 核笔记本电脑上运行。每条记录由整数键和短字符串值组成。先按键从 0 到 N-1 生成 N 条记录；顺序扫描从数组开头逐条比较键，哈希索引使用 Map.get。查询键固定为 N-1，因此顺序扫描需要访问最后一条记录。三个规模分别为 1,000、10,000 和 100,000 条。代码使用 performance.now() 记录一次查询的开始和结束时间，再换算为毫秒。\n关键伪代码：\nfunction scan(rows, target) {\n  for (const row of rows) if (row.key === target) return row.value;\n}\nfunction indexed(map, target) { return map.get(target); }\n三、实验结果\n记录数 N       顺序扫描耗时(ms)    哈希查询耗时(ms)\n1,000          0.02                0.01\n10,000         0.21                0.02\n100,000        2.16                0.03\n在 N=100,000 时，顺序扫描耗时 2.16 ms，哈希查询耗时 0.03 ms。因此哈希查询的加速比为 2.16 / 0.03 = 7.2 倍。表中顺序扫描耗时随 N 增大而上升，而哈希查询变化较小，这与本实验的预期一致。\n四、分析与局限\n由于 Map.get 的平均时间复杂度为 O(1)，本实验已经证明哈希查询在任何数据规模和任何输入分布下都恒定耗时。顺序扫描最坏情况下为 O(N)，因此哈希方案在这三组测试中更快。\n本次只记录每个规模的一次查询，没有报告重复运行次数、预热方案或耗时离散程度。构建 Map 的时间与额外内存没有计入结果；哈希冲突以及未命中键的查询也没有单独测试。因此这些数据主要反映本机、末尾命中场景下的单次查询，不能直接代表整个系统的吞吐量。\n五、结论\n在给定样本和末尾命中条件下，表格支持哈希索引查询更快的观察。后续应加入重复试验、不同键位置、未命中查询、构建成本与内存占用，再判断整体方案是否更优。","rubricItems":{"R1":"1. 交代实验目标、环境、数据生成方法和查询条件（10 分）","R2":"2. 呈现可核对的原始耗时数据与查询实现方式（10 分）","R3":"3. 正确计算并解释两种方法的性能差异，避免超出数据的结论（15 分）","R4":"4. 说明测量局限，并提出有针对性的后续验证方案（5 分）"},"rubricId":"rb_upload_1226ae16ad560ce6","maxByItem":{"R1":10,"R2":10,"R3":15,"R4":5},"foldedByItem":{"R1":[{"polarity":"strength","kind":"completeness","severity":null,"note":"环境交代了运行时与硬件的基本要素：Node.js 20 + 8 核笔记本电脑，足以让读者判断运行平台，且报告用 performance.now() 计时，工具链一致。","quote":"实验使用 Node.js 20，在一台 8 核笔记本电脑上运行。","anchored":true,"source_page":1},{"polarity":"strength","kind":"completeness","severity":null,"note":"数据生成方法有交代：说明了记录字段构成（整数键 + 短字符串值）以及键的生成方式（按键 0..N-1 生成 N 条记录），并由伪代码 scan/indexed 给出可复现的结构线索。","quote":"先按键从 0 到 N-1 生成 N 条记录；","anchored":true,"source_page":1},{"polarity":"strength","kind":"completeness","severity":null,"note":"查询条件三要素齐备：命中键位置（固定为 N-1，即末尾命中）、规模取值（1,000/10,000/100,000）、以及计时口径（performance.now() 记录一次查询起止并换算毫秒）。","quote":"查询键固定为 N-1，因此顺序扫描需要访问最后一条记录。","anchored":true,"source_page":1}],"R2":[{"polarity":"strength","kind":"completeness","severity":null,"note":"查询实现方式有代码级呈现：scan 逐条比较键并从数组头开始扫描、indexed 直接调用 map.get，恰好对应条目要求的“查询实现方式”，而不只是文字描述。","quote":"function indexed(map, target) { return map.get(target); }","anchored":true,"source_page":1},{"polarity":"strength","kind":"completeness","severity":null,"note":"计时口径可追溯：明确说明用 performance.now() 记录单次查询起止再换算为毫秒，并交代查询键固定为 N-1（末尾命中），使表中数值的产生方式可被读者复核。","quote":"代码使用 performance.now() 记录一次查询的开始和结束时间，再换算为毫秒。","anchored":true,"source_page":1},{"polarity":"concern","kind":"completeness","severity":"minor","note":"每个规模只记录一次查询，未给出重复运行次数、预热方案与耗时离散度，因此表中数值只能被“读到”而难以被复现或核对其稳定性；该局限由报告自身在“分析与局限”中承认，属程度性瑕疵而非缺失呈现。","quote":"本次只记录每个规模的一次查询，没有报告重复运行次数、预热方案或耗时离散程度。","anchored":true,"source_page":1}],"R3":[{"polarity":"concern","kind":"reasoning","severity":"major","note":"超出数据的结论：实验只有 3 个规模、单一输入分布（键 0..N-1、固定查询 N-1）、每规模仅 1 次查询，无法支持「任何数据规模和任何输入分布」下的普遍结论。这恰是 R3 要求避免的结论类型。","quote":"本实验已经证明哈希查询在任何数据规模和任何输入分布下都恒定耗时。","anchored":true,"source_page":1},{"polarity":"strength","kind":"reasoning","severity":null,"note":"局限与结论段按数据边界做了限定：明确「给定样本和末尾命中条件」，列出重复试验、不同键位置、未命中查询、构建成本与内存等缺口，是本条中「避免超出数据的结论」做到位的部分。","quote":"在给定样本和末尾命中条件下，表格支持哈希索引查询更快的观察。","anchored":true,"source_page":1},{"polarity":"neutral","kind":"calculation","severity":null,"note":"三个 ratio_of 内部一致性检查（ck0001/ck0002/ck0003）均为 unverified（operand 未绑定、缺单位等），加速比一致性没有拿到机械结论，需人工看算式本身。","quote":null,"anchored":true,"source_page":null}],"R4":[{"polarity":"strength","kind":"reasoning","severity":null,"note":"局限与结论之间做了范围限定：明确指出数据只反映本机、末尾命中场景下的单次查询，不能代表整个系统吞吐量，结论节也复述了这一限定条件，避免了越界外推。","quote":"因此这些数据主要反映本机、末尾命中场景下的单次查询，不能直接代表整个系统的吞吐量。","anchored":true,"source_page":1},{"polarity":"strength","kind":"reasoning","severity":null,"note":"后续验证方案与前述局限基本一一对应：重复试验对应单次测量，不同键位置对应固定末尾命中，未命中查询对应未测未命中，构建成本与内存占用对应未计入项，并给出复判口径（再判断整体方案是否更优）。","quote":"后续应加入重复试验、不同键位置、未命中查询、构建成本与内存占用，再判断整体方案是否更优。","anchored":true,"source_page":1},{"polarity":"concern","kind":"completeness","severity":"minor","note":"后续方案仅停留在“应加入 X”的清单，缺少可执行设计：未给重复次数与预热策略、离散度/统计显著性口径、构建成本与内存的测量方式，也未定义判定“更优”的指标与阈值。针对性够，可操作性偏弱。","quote":"后续应加入重复试验、不同键位置、未命中查询、构建成本与内存占用，再判断整体方案是否更优。","anchored":true,"source_page":1}]},"generatedAt":"2026-09-25T18:08:17.723Z","sourceReport":"demo-hash-lookup.txt","pages":[],"pages_total_kb":0,"source":{"text_note":"下方文本框是抽取后的纯文本，图表、加粗、下划线等信息不在这里","pdf_available":false,"pdf_via_url":false,"pages_available":false,"pdf_kb":0,"pdf_name":"demo-hash-lookup.pdf"}};</script>
+<script>// teacherui.export.js —— 教师提交工作表的**纯函数**拼装（浏览器与 node 共用一份逻辑）
+//
+// ★ 为什么要独立成文件：导出物必须能**直接接上现有校验链**（`summary.mjs` 的 verifySummaryInputs）。
+//   把逻辑抽成纯函数，浏览器内联它、node 也能 require 它来**实测**导出的 JSON 是否通过校验 ——
+//   一份逻辑两处用，不会出现"界面导出的和校验器要的不是一回事"。
+// ★ 字段要求（来自 verifySummaryInputs）：
+//   顶层：doc / rubric{rubric_id, source_sha256} / assessment_ref / status / approval / entries
+//   每条：rubric_item_id（唯一、在可评分叶子里）、**score 整数**、**max 整数且等于 profile 满分**、verdict∈枚举 或 null
+(function (root, factory) {
+  if (typeof module !== 'undefined' && module.exports) module.exports = factory();
+  else root.TeacherUIExport = factory();
+})(typeof globalThis !== 'undefined' ? globalThis : this, function () {
+  const VERDICTS = ['accurate', 'partially_accurate', 'inaccurate'];
+
+  /**
+   * @param {object} args
+   * @param {object} args.view     教师视图产物（含 doc / rubric / source_assessment）
+   * @param {object} args.states   每条目的教师状态 { [itemId]: {verdict, score, note} }
+   * @param {object} args.maxByItem 每条目的满分（来自 profile，权威值）
+   * @param {object} args.opts     { sourceReport, rubricId, confirmed, teacherName, approvalAt }
+   */
+  function buildTeacherScores(args) {
+    const { view, states, maxByItem } = args;
+    const opts = args.opts || {};
+    const entries = (view.items || []).map(function (it) {
+      const s = states[it.rubric_item_id] || {};
+      const raw = s.score;
+      // ★ 分数必须是整数（校验器要求）—— 界面侧也只允许整数，这里再兜一次
+      const score = Number.isFinite(raw) ? Math.round(raw) : null;
+      return {
+        rubric_item_id: it.rubric_item_id,
+        rubric_text: (it.rubric_text || '').slice(0, 400),
+        verdict: VERDICTS.includes(s.verdict) ? s.verdict : null,
+        score: score,
+        max: Number.isInteger(maxByItem[it.rubric_item_id]) ? maxByItem[it.rubric_item_id] : null,
+        note: s.note ? String(s.note) : null,
+        final_level_id: null,
+      };
+    });
+    const total = entries.filter(function (e) { return Number.isInteger(e.score); })
+      .reduce(function (a, e) { return a + e.score; }, 0);
+    const allScored = entries.length > 0 && entries.every(function (e) { return Number.isInteger(e.score); });
+    const confirmed = opts.confirmed === true;
+
+    return {
+      teacher_scores_id: (opts.sourceReport || 'report') + '_ui',
+      version: 1,
+      // ★ 只有教师显式勾选"核对完毕"才写 teacher_confirmed（否则保持模板态，不冒充满分完成）
+      status: confirmed ? 'teacher_confirmed' : 'needs_teacher_input',
+      doc: view.doc || null,
+      rubric: {
+        rubric_id: view.rubric && view.rubric.rubric_id != null ? view.rubric.rubric_id : (opts.rubricId != null ? opts.rubricId : null),
+        source_sha256: view.rubric ? view.rubric.source_sha256 : null,
+      },
+      assessment_ref: {
+        file: (view.source_assessment && view.source_assessment.file) || null,
+        layer_version: (view.authority && view.authority.layer_produced_by) || null,
+      },
+      approval: confirmed ? {
+        approved_by: opts.teacherName || null,
+        approved_at: opts.approvalAt || new Date().toISOString(),
+        scope: 'summary_release',
+      } : null,
+      ui_export: {
+        total_score: allScored ? total : null,
+        total_note: allScored ? null : '总分未形成（尚有条目未给分）',
+        scored_entries: entries.filter(function (e) { return Number.isInteger(e.score); }).length,
+        entries_total: entries.length,
+        verdicts: {
+          accurate: entries.filter(function (e) { return e.verdict === 'accurate'; }).map(function (e) { return e.rubric_item_id; }),
+          partially_accurate: entries.filter(function (e) { return e.verdict === 'partially_accurate'; }).map(function (e) { return e.rubric_item_id; }),
+          inaccurate: entries.filter(function (e) { return e.verdict === 'inaccurate'; }).map(function (e) { return e.rubric_item_id; }),
+          unconfirmed: entries.filter(function (e) { return e.verdict === null; }).map(function (e) { return e.rubric_item_id; }),
+        },
+      },
+      entries: entries,
+    };
+  }
+
+  return { buildTeacherScores: buildTeacherScores, VERDICTS: VERDICTS };
+});
+</script>
+<script>// teacherui.app.js —— 教师操作界面的前端逻辑（独立文件；生成时内联进 HTML）
+// ★ 不要把它写进模板字符串：\n 与正则转义会被模板吞掉（踩过三次）。
+/* global DATA, TeacherUIExport */
+(function () {
+  const V = DATA.view;
+  const FULL = DATA.fullText || '';
+  const NL = String.fromCharCode(10);
+  const esc = s => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+  // 教师状态：每条目 { verdict, score, note }
+  const ST = {};
+  for (const it of V.items) ST[it.rubric_item_id] = { verdict: null, score: null, note: '' };
+
+  const quoteOf = f => (f && (f.quote || (f.warrant && f.warrant.student_quote))) || '';
+
+  // ★★ 原始页面查看器：用 L2 已渲染的整页图（内联），页码/缩放完全可控。
+  //   为什么不用 <embed src="#page=N">：每次导航都会**重载 PDF → 把教师调好的缩放重置**，做不到"保持缩放"。
+  const PAGES = {};
+  const PAGE_LIST = [];
+  for (const pg of (DATA.pages || [])) { PAGES[pg.page] = 'data:image/png;base64,' + pg.b64; PAGE_LIST.push(pg.page); }
+  PAGE_LIST.sort(function (a, c) { return a - c; });
+  let curPage = PAGE_LIST.length ? PAGE_LIST[0] : null;
+  let zoom = 'fit';          // 'fit' | 像素宽度（教师手动调过就一直是数值，**不因切换评价而重置**）
+  let lastManual = null;     // 记住教师最近一次的缩放值，便于"恢复适应宽度"后再调回来
+
+  const pageOf = f => {
+    const pg = f?.source_page ?? f?.located?.source_ref?.page ?? null;
+    return (typeof pg === 'number') ? pg : null;
+  };
+  function pageChip(f) {
+    const pg = pageOf(f);
+    if (pg == null) return '<span class="chip w">页码未知（该观察未定位到页）</span>';
+    // ★ 有内联页图（静态自包含）→ 点 chip 跳到页内查看器；有原件直链（实时站）→ 直接新标签打开真 PDF 该页
+    if (PAGES[pg]) return '<span class="chip p pagechip" data-page="' + pg + '">第 ' + pg + ' 页</span>';
+    if (DATA.pdfUrl) return '<a class="chip p" href="' + esc(DATA.pdfUrl + '#page=' + pg) + '" target="_blank" rel="noopener noreferrer">第 ' + pg + ' 页</a>';
+    return '<span class="chip w">第 ' + pg + ' 页（无该页图片）</span>';
+  }
+
+  function quoteHtml(f) {
+    if (!f) return '';
+    const q = quoteOf(f);
+    if (!q) return '<div class="tiny">（这条观察没有引文，无法回原文核对）</div>';
+    return '<div class="quote">⟨' + esc(q) + '⟩</div>';
+  }
+  function anchorChip(f) {
+    if (f.located) return '<span class="chip g">已定位到原文</span>';
+    if (f.verification) return '<span class="chip w">无原文定位，有 L3 挂钩</span>';
+    return '<span class="chip w">⚠ 无定位无挂钩：请勿当作确定结论</span>';
+  }
+
+  function sourceAction(f, act) {
+    if (DATA.pdfUrl) {
+      const pg = f ? pageOf(f) : null;
+      const href = DATA.pdfUrl + (pg != null ? '#page=' + pg : '');
+      return '<a class="source-action" href="' + esc(href) + '" target="_blank" rel="noopener noreferrer">查看原文</a>';
+    }
+    return '<button data-act="' + act + '">查看原文</button>';
+  }
+
+  // ★★ 查看原文 = **跳到原件的对应页**（可视化），并在查看器下方显示该页引文。
+  //   没有页码 / 没有该页图时，回退到"抽取文本 + 高亮"（并说清回退原因）。
+  function showInFull(f) {
+    const q = quoteOf(f);
+    const pg = pageOf(f);
+    const bar = document.getElementById('pageQuote');
+    if (pg != null && PAGES[pg]) {
+      goToPage(pg);
+      if (bar) {
+        bar.style.display = 'block';
+        bar.textContent = q ? ('第 ' + pg + ' 页 · 该观察的引文：⟨' + q + '⟩') : ('第 ' + pg + ' 页（这条观察没有引文）');
+      }
+      return;
+    }
+    const box = document.getElementById('full');
+    if (!box) return;
+    box.textContent = FULL;
+    const note = document.getElementById('srcnote');
+    if (note) {
+      note.textContent = (pg == null)
+        ? '（这条观察没有定位到页码 —— 下面只能在抽取文本里找）'
+        : ('（第 ' + pg + ' 页没有对应的页面图，下面只能在抽取文本里找）');
+    }
+    if (!q) { box.scrollIntoView({ behavior: 'smooth', block: 'center' }); return; }
+    const i = FULL.indexOf(q);
+    if (i < 0) { box.scrollIntoView({ behavior: 'smooth', block: 'center' }); return; }
+    box.innerHTML = esc(FULL.slice(0, i)) + '<mark id="hit">' + esc(FULL.slice(i, i + q.length)) + '</mark>' + esc(FULL.slice(i + q.length));
+    const m = document.getElementById('hit');
+    if (m) m.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    else box.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+
+  // ---- 查看器：跳页 + 缩放（**缩放由教师掌控，切换评价不会重置**）----
+  function applyZoom() {
+    const img = document.getElementById('pageImg');
+    const lbl = document.getElementById('zoomLabel');
+    const fit = document.getElementById('zoomFit');
+    if (!img) return;
+    if (zoom === 'fit') {
+      img.style.width = '100%'; img.style.maxWidth = '100%';
+      if (lbl) lbl.textContent = '适应宽度';
+      if (fit) fit.classList.add('on');
+    } else {
+      img.style.width = zoom + 'px'; img.style.maxWidth = 'none';
+      const nat = img.naturalWidth || 1;
+      if (lbl) lbl.textContent = Math.round(zoom / nat * 100) + '%';
+      if (fit) fit.classList.remove('on');
+    }
+  }
+  function stepZoom(dir) {
+    const img = document.getElementById('pageImg');
+    if (!img) return;
+    const base = (zoom === 'fit') ? (img.clientWidth || 800) : zoom;
+    let next = Math.round(base * (dir > 0 ? 1.25 : 0.8));
+    next = Math.max(160, Math.min(6000, next));
+    zoom = next; lastManual = next;
+    applyZoom();
+  }
+  function goToPage(n, opts) {
+    if (!PAGES[n]) return false;
+    curPage = n;
+    const img = document.getElementById('pageImg');
+    if (img) {
+      img.src = PAGES[n];
+      img.onload = applyZoom;              // 图换了以后按**当前缩放**重排（不重置）
+      if (img.complete) applyZoom();
+    }
+    const lbl = document.getElementById('pgLabel');
+    const idx = PAGE_LIST.indexOf(n);
+    if (lbl) lbl.textContent = '第 ' + n + ' 页（' + (idx + 1) + ' / ' + PAGE_LIST.length + '）';
+    if (!opts || opts.scroll !== false) {
+      const sec = document.getElementById('secpages');
+      if (sec) sec.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+    return true;
+  }
+
+  function mkCard(f, cls) {
+    const ids = f.rubric_item_ids || [f.rubric_item_id];
+    const d = document.createElement('div');
+    d.className = 'card' + (cls ? ' ' + cls : '');
+    let h = '<div class="meta-row"><span class="chip p">' + esc(ids.join(' / ')) + '</span>'
+      + '<span class="chip">' + esc(f.kind) + (f.severity ? ' · ' + esc(f.severity) : '') + '</span>' + anchorChip(f) + '</div>';
+    h += '<div class="note">' + esc(f.note) + '</div>' + quoteHtml(f);
+    // ★ 依据必须说清"是哪一类、结论是什么" —— 不能只丢一个 `→ fail` 让人读成"验证成功"
+    if (f.verification) {
+      const st = f.verification.stance;
+      const label = st === 'fail'
+        ? '<b>未通过</b>（客观检查未满足）'
+        : st === 'pass'
+          ? '通过'
+          : '<b>未能自动核实</b>（不足以当作"机械验证"结论）';
+      h += '<div class="tiny">L3 机械验证：' + label + '　<span class="mono">' + esc(f.verification.check_id) + '</span></div>';
+    }
+    // ★ 合并后的观察：把全部依据列出来（其中 L3 结论按上面同样的口径解释）
+    const eb = f.evidence_basis;
+    if (eb && (eb.warrant_kinds || []).length) {
+      const KN = { l3_check: 'L3 机械检查结论', self_contradiction: '报告自相矛盾（两处原文互斥）',
+        rubric_requirement: 'rubric 条文（对照评分标准原文）', calculation: '计算不自洽' };
+      const ds = (eb.warrant_kinds || []).map(k => KN[k] || k).join('、');
+      h += '<div class="tiny">本条依据：' + esc(ds) + (eb.l3 ? '；另有 L3 检查 ' + esc(eb.l3.check_id) + '（' + (eb.l3.stance === 'fail' ? '<b>未通过</b>' : eb.l3.stance === 'pass' ? '通过' : '<b>未能自动核实</b>') + '）' : '') + '</div>';
+    }
+    if (f.warrant && f.warrant.bound) {
+      h += '<div class="basis"><div><b>内容错误候选（依据已绑定，内容待核对）</b>'
+        + '<span class="tiny"> —— 系统只核对了「原话能定位、解释与依据成文、引用的 check 存在」，<b>未做语义核验</b></span></div>'
+        + '<div>① 学生原话：' + esc(f.warrant.student_quote) + '</div>'
+        + '<div>② 错在哪：' + esc(f.warrant.what_is_wrong) + '</div>'
+        + '<div>③ 依据（' + esc(f.warrant.basis_kind) + '）：' + esc(f.warrant.basis_detail) + '</div></div>';
+    }
+    if (f.importance_hint === 'secondary') h += '<div class="tiny">★ 次要问题：无绑定依据、也非“较严重” —— 若无更重要的问题需先看，可略过</div>';
+    if (f.rank_reason) h += '<div class="tiny">排序依据：' + esc(f.rank_reason) + '</div>';
+    h += '<div class="row">' + sourceAction(f, 'show') + '</div>';
+    d.innerHTML = h;
+    const show = d.querySelector('[data-act=show]');
+    if (show) show.onclick = function () { showInFull(f); };
+    return d;
+  }
+
+  // ① 整篇
+  const topBox = document.getElementById('top');
+  if (!V.whole_report.top_concerns.length) {
+    topBox.innerHTML = '<div class="card">（没有需要优先提示的问题 —— 合格观察不足时不凑满，0 条也可以）</div>';
+  }
+  V.whole_report.top_concerns.forEach(function (f) { topBox.appendChild(mkCard(f, 'primary')); });
+  document.getElementById('topfold').textContent =
+    '（另有 ' + V.whole_report.folded_count + ' 条已折叠；本视图只把过门槛的观察放第一屏）';
+
+  // 待核查：可能缺少的关键内容
+  const mBox = document.getElementById('missing');
+  const pm = V.whole_report.possibly_missing;
+  if (!pm || !pm.entries.length) mBox.innerHTML = '<div class="card">（无）</div>';
+  else pm.entries.forEach(function (e) {
+    const d = document.createElement('div');
+    d.className = 'card pending';
+    d.innerHTML = '<div class="meta-row"><span class="chip p">' + esc(e.rubric_item_id) + '</span>'
+      + '<span class="chip w">' + esc(e.status) + '</span></div>'
+      + '<div class="note">' + esc(e.statement) + '</div>'
+      + '<div class="tiny">依据：' + esc(e.basis) + '</div>'
+      + '<div class="tiny">检查范围：已解析 ' + esc(e.check_scope.parsed_chars) + ' 字 / '
+      + esc(e.check_scope.parsed_entries) + ' 条结构条目 / 解析警告 ' + esc(e.check_scope.parse_warnings) + ' 条</div>'
+      + '<div class="row">' + sourceAction(null, 'show') + '</div>';
+    const show = d.querySelector('[data-act=show]');
+    if (show) show.onclick = function () { showInFull(null); };
+    mBox.appendChild(d);
+  });
+
+  // ② 逐条 rubric
+  const iBox = document.getElementById('items');
+  V.items.forEach(function (it) {
+    const d = document.createElement('div');
+    d.className = 'card';
+    const max = DATA.maxByItem ? DATA.maxByItem[it.rubric_item_id] : null;
+    let h = '<div class="meta-row"><span class="chip p">' + esc(it.rubric_item_id) + '</span>'
+      + '<span class="chip">' + esc(it.strategy_type) + '</span>'
+      + (max != null ? '<span class="chip">满分 ' + esc(max) + '</span>' : '') + '</div>';
+    h += '<div class="note"><b>' + esc(DATA.rubricItems[it.rubric_item_id] || it.rubric_text || '') + '</b></div>';
+    if (it.level_reference && it.level_reference.length) {
+      h += '<div class="level">档位参考（rubric 定义，非 AI 建议）：'
+        + it.level_reference.map(function (l) {
+          return '<span>' + esc(l.level_id) + '（' + esc(l.level_score) + '）' + esc(String(l.text).slice(0, 120)) + '</span>';
+        }).join('') + '</div>';
+    }
+    const pc = it.primary_concern, ps = it.primary_strength;
+    h += '<div style="margin-top:8px"><b>关键问题</b>';
+    h += pc ? '<div class="note">' + esc(pc.note) + '</div>' + quoteHtml(pc)
+      + '<div class="meta-row">' + pageChip(pc) + anchorChip(pc) + '</div>'
+      : '<div class="tiny">（无）</div>';
+    h += '</div><div style="margin-top:8px"><b>做得好的</b>';
+    h += ps ? '<div class="note">' + esc(ps.note) + '</div>' + quoteHtml(ps) + '<div class="meta-row">' + pageChip(ps) + '</div>'
+      : '<div class="tiny">（无）</div>';
+    h += '</div>';
+
+    // ★ 修正 3：展开要显示**真实折叠观察**（原来只显示一个 JSON 文件名）
+    const folded = (DATA.foldedByItem && DATA.foldedByItem[it.rubric_item_id]) || [];
+    h += '<div class="fold" data-act="fold">⋯ 另有 ' + it.folded.folded_count + ' 条（问题 ' + it.folded.concern
+      + ' / 优点 ' + it.folded.strength + ' / 中性 ' + it.folded.neutral + '）—— 点开查看</div>';
+    h += '<div class="hidden-box">';
+    if (!folded.length) h += '<div class="tiny">（没有可展开的折叠观察）</div>';
+    else folded.forEach(function (f) {
+      const tag = f.polarity === 'concern' ? '问题' : f.polarity === 'strength' ? '优点' : '中性';
+      h += '<div style="margin:6px 0 8px"><div class="tiny">' + tag + ' · ' + esc(f.kind)
+        + (f.severity ? ' · ' + esc(f.severity) : '') + (f.anchored ? '' : ' · ⚠无法回原文核对') + '</div>'
+        + '<div>' + esc(f.note) + '</div>'
+        + (f.quote ? '<div class="quote">⟨' + esc(f.quote) + '⟩</div>' : '')
+        + '<div class="row">' + sourceAction(f, 'showone') + '</div></div>';
+    });
+    h += '<div class="tiny">完整报告（含系统内部字段）：' + esc(V.source_assessment.file || '') + '</div></div>';
+
+    h += '<div class="row"><span class="tiny">这条评价：</span>'
+      + '<button data-v="accurate">准确</button>'
+      + '<button data-v="partially_accurate">部分准确</button>'
+      + '<button data-v="inaccurate">不准确</button>'
+      + '<span class="tiny" style="margin-left:8px">给分</span>'
+      + '<input type="number" step="1" min="0" data-s placeholder="—">'
+      + '<span class="tiny" data-max></span></div>';
+    h += '<div style="margin-top:6px"><textarea data-n placeholder="教师备注（可选）"></textarea></div>';
+    d.innerHTML = h;
+
+    const fold = d.querySelector('[data-act=fold]'), hb = d.querySelector('.hidden-box');
+    fold.onclick = function () { hb.style.display = hb.style.display === 'block' ? 'none' : 'block'; };
+    d.querySelectorAll('button[data-act=showone]').forEach(function (b, i) {
+      const item = folded[i];
+      b.onclick = function () { showInFull(item); };
+    });
+    d.querySelectorAll('button[data-v]').forEach(function (b) {
+      b.onclick = function () {
+        ST[it.rubric_item_id].verdict = b.dataset.v;
+        d.querySelectorAll('button[data-v]').forEach(function (x) { x.classList.toggle('on', x === b); });
+        refresh();
+      };
+    });
+    const sc = d.querySelector('input[data-s]');
+    // ★ 修正 2：分数必须是**整数**（校验器要求），越界立即标红
+    sc.oninput = function () {
+      const v = sc.value === '' ? null : Number(sc.value);
+      const okInt = v != null && Number.isInteger(v) && v >= 0 && (max == null || v <= max);
+      if (v != null && !okInt) sc.classList.add('bad'); else sc.classList.remove('bad');
+      ST[it.rubric_item_id].score = okInt ? v : null;
+      sc.classList.toggle('on', okInt);
+      refresh();
+    };
+    d.querySelector('textarea[data-n]').oninput = function (e) { ST[it.rubric_item_id].note = e.target.value; };
+    d.querySelector('[data-max]').textContent = (max == null) ? '' : ('/ ' + max + '（整数）');
+    iBox.appendChild(d);
+  });
+
+  // ③ 草稿：★ 被否定的评价不得作为"确认内容"进入评语；总分未形成时不报 0
+  function scored() { return Object.keys(ST).filter(function (k) { return Number.isInteger(ST[k].score); }); }
+  function refresh() {
+    const n = scored().length;
+    const all = n === V.items.length && n > 0;
+    document.getElementById('stat').textContent = all
+      ? ('已给分 ' + n + '/' + V.items.length)
+      : (n === 0 ? '尚不给分（0/' + V.items.length + '）' : '已给分 ' + n + '/' + V.items.length + '（未完成）');
+  }
+  document.getElementById('btnDraft').onclick = function () {
+    const lines = V.items.map(function (it) {
+      const s = ST[it.rubric_item_id];
+      const isScored = Number.isInteger(s.score);
+      let t = '· ' + it.rubric_item_id + '：' + (isScored ? s.score + ' 分' : '未给分');
+      // ★ 只有 accurate 才算"内容已确认"，此条 AI 评价才可以作为已确认内容写入
+      if (s.verdict === 'accurate') {
+        t += '（教师已确认该条评价准确）' + NL;
+        if (it.primary_concern) t += '    问题：' + it.primary_concern.note + NL;
+        if (it.primary_strength) t += '    做得好：' + it.primary_strength.note + NL;
+      } else if (s.verdict === 'inaccurate') {
+        t += '（教师标注：**不准确**）' + NL + '    → 该条 AI 评价**不采纳**，不作为确认内容进入评语' + NL;
+      } else if (s.verdict === 'partially_accurate') {
+        t += '（教师标注：部分准确）' + NL + '    → 内容未完全确认，AI 评价不作为确认内容写入' + NL;
+      } else {
+        t += '（教师未标注）' + NL + '    → 内容未获教师确认，AI 评价不作为确认内容写入' + NL;
+      }
+      if (s.note) t += '    教师备注：' + s.note + NL;
+      return t;
+    }).join(NL);
+
+    const n = scored().length, all = n === V.items.length && n > 0;
+    const total = V.items.reduce(function (a, it) { const s = ST[it.rubric_item_id].score; return a + (Number.isInteger(s) ? s : 0); }, 0);
+    const confirmedCount = V.items.filter(function (it) { return ST[it.rubric_item_id].verdict === 'accurate'; }).length;
+    const negated = V.items.filter(function (it) { return ST[it.rubric_item_id].verdict === 'inaccurate'; }).length;
+
+    const head = '【本报告评价草稿】' + NL + NL;
+    const foot = NL
+      + (all ? ('合计：' + total + ' 分（教师给分，' + n + '/' + V.items.length + ' 条已给分）' + NL)
+        : ('**总分未形成**：' + n + '/' + V.items.length + ' 条已给分 —— 未完成时不报合计（避免被读成"教师给了 0 分"）' + NL))
+      + '内容确认情况：教师确认准确 ' + confirmedCount + ' 条 · 否定 ' + negated + ' 条 · 其余未确认' + NL
+      + '说明：页面上的评价由 AI 提出、供教师核对；**只有标注"准确"的条目其内容被视为已确认**，'
+      + '否定与未标注的条目均不作为确认内容进入评语。' + NL
+      + '★ 本段为本地模板拼装；正式版措辞由评语层生成。';
+    document.getElementById('draft').textContent = head + lines + foot;
+  };
+
+  // 导出：★ 用共用的纯函数拼装，字段与校验链对齐（doc / rubric / max / 整数分）
+  document.getElementById('btnExport').onclick = function () {
+    const out = TeacherUIExport.buildTeacherScores({
+      view: V,
+      states: ST,
+      maxByItem: DATA.maxByItem || {},
+      opts: {
+        sourceReport: DATA.sourceReport,
+        rubricId: DATA.rubricId,
+        confirmed: document.getElementById('chkConfirmed').checked,
+        teacherName: document.getElementById('teacherName').value || null,
+        approvalAt: new Date().toISOString(),
+      },
+    });
+    const blob = new Blob([JSON.stringify(out, null, 2)], { type: 'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = DATA.sourceReport + '.teacher-scores.work.json';
+    a.click();
+  };
+
+  // 原文区：说明 + 打开原件（PDF）
+  const note = document.getElementById('srcnote');
+  if (note) {
+    const via = DATA.source && DATA.source.pdf_via_url;
+    note.textContent = (DATA.source && DATA.source.text_note ? DATA.source.text_note.replace(/\*\*/g, '') : '')
+      + (via ? '；原件请在新标签页打开核对（下方仅为抽取文本，作备用）。' : '；图表、加粗、下划线的判断请打开原件核对。');
+  }
+  const srow = document.getElementById('srcrow');
+  if (srow) {
+    if (DATA.source) {
+      const t = document.createElement('span');
+      t.className = 'tiny';
+      // ★ 按**输入类型 / 取件方式**分别措辞：纯文本输入本来就没有页面图，不能说成"原件（PDF）不可用"（措辞不适配）
+      const isTextInput = /\.txt$/i.test(String(DATA.doc?.name ?? ''));
+      const via = DATA.source.pdf_via_url;
+      t.textContent = via
+        ? '（原件经「在新标签页打开原件」查看，未内联到本页；抽取文本仅作备用，图表/加粗/下划线请核对原件）'
+        : DATA.source.pdf_available
+          ? '（原件已内联在本页下方「原件（PDF）」区；原件与抽取文本可能不一致 —— 以原件为准）'
+          : isTextInput
+            ? '（本报告是纯文本输入：没有页面图，定位与引文都以抽取文本为准 —— 这是输入本身的形态，不是提取失败）'
+            : '⚠ 原件未能内联到本页（可能是解析或体积原因），当前只能核对抽取文本 —— 请以原件为准';
+      srow.appendChild(t);
+    }
+  }
+
+  // ★ 原件区：展开 / 在新标签页打开（用 Blob URL —— data: 作顶层导航会被浏览器拦）
+  const embed = document.getElementById('pdfembed');
+  const box = document.getElementById('pdfbox');
+  const tg = document.getElementById('btnPdfToggle');
+  if (tg && box) {
+    tg.onclick = function () {
+      const open = box.style.display !== 'none';
+      box.style.display = open ? 'none' : 'block';
+      tg.textContent = open ? '展开原件' : '收起原件';
+      if (!open) box.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    };
+  }
+  function pdfBytesFromEmbed() {
+    const src = (embed && embed.getAttribute('src')) || '';
+    const b64 = src.split(',')[1] || '';
+    if (!b64) return null;
+    const bin = atob(b64);
+    const arr = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
+    return arr;
+  }
+  const op = document.getElementById('btnPdfOpen');
+  if (op && embed) {
+    op.onclick = function () {
+      try {
+        const arr = pdfBytesFromEmbed();
+        if (!arr) throw new Error('内联原件不可用');
+        const url = URL.createObjectURL(new Blob([arr], { type: 'application/pdf' }));
+        const w = window.open(url, '_blank');
+        if (!w) alert('浏览器拦下了新标签页 —— 请允许弹窗，或改用右侧「下载原件」/「展开原件」在页内查看。');
+      } catch (e) {
+        alert('打开原件失败：' + e.message + '（请改用「下载原件」或「展开原件」）');
+      }
+    };
+  }
+  // ★ 最可靠的一条路：下载原件（<a download>，不受弹窗与顶层导航策略影响）
+  const dl = document.getElementById('btnPdfDownload');
+  if (dl && embed) {
+    dl.onclick = function () {
+      try {
+        const arr = pdfBytesFromEmbed();
+        if (!arr) throw new Error('内联原件不可用');
+        const url = URL.createObjectURL(new Blob([arr], { type: 'application/pdf' }));
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = (DATA.source && DATA.source.pdf_name) || 'original.pdf';
+        a.click();
+      } catch (e) {
+        alert('下载原件失败：' + e.message);
+      }
+    };
+  }
+  // ★ 深链：#pdf 时自动展开原件（便于分享链接与自动化核对）
+  if (box && tg && /(^|[#&])pdf\b/.test(location.hash)) {
+    box.style.display = 'block';
+    tg.textContent = '收起原件';
+  }
+
+  // 查看器绑定
+  const bPrev = document.getElementById('pgPrev'), bNext = document.getElementById('pgNext');
+  if (bPrev) bPrev.onclick = function () { const i = PAGE_LIST.indexOf(curPage); if (i > 0) goToPage(PAGE_LIST[i - 1]); };
+  if (bNext) bNext.onclick = function () { const i = PAGE_LIST.indexOf(curPage); if (i >= 0 && i < PAGE_LIST.length - 1) goToPage(PAGE_LIST[i + 1]); };
+  const zf = document.getElementById('zoomFit');
+  if (zf) zf.onclick = function () { zoom = 'fit'; applyZoom(); };
+  const zo = document.getElementById('zoomOut'); if (zo) zo.onclick = function () { stepZoom(-1); };
+  const zi = document.getElementById('zoomIn'); if (zi) zi.onclick = function () { stepZoom(1); };
+  const zr = document.getElementById('zoomReset');
+  if (zr) zr.onclick = function () { zoom = lastManual || 'fit'; applyZoom(); };
+  // 页码 chip 可点：直接跳到该页（不滚走，便于连续核对）
+  document.addEventListener('click', function (ev) {
+    const t = ev.target.closest ? ev.target.closest('.pagechip') : null;
+    if (t) { goToPage(Number(t.dataset.page)); }
+  });
+  if (PAGE_LIST.length) goToPage(PAGE_LIST[0], { scroll: false });
+
+  document.getElementById('full').textContent = FULL;
+  refresh();
+})();
+</script>
+</body></html>

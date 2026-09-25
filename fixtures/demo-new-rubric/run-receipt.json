@@ -1,0 +1,71 @@
+{
+  "kind": "public-realtime-new-rubric-test",
+  "source": "synthetic-demo-report",
+  "base_url": "https://autograder-sotv.onrender.com",
+  "submitted_at": "2026-09-25T18:05:57.173Z",
+  "finished_at": "2026-09-25T18:08:25.966Z",
+  "job_id": "3f04dc07e8e74082",
+  "state": "done",
+  "quota_after_submission": {
+    "limit": 6,
+    "used": 1,
+    "remaining": 5
+  },
+  "report_sha256": "7e6e11a2ca0c127e09b2bf8509c52c7c5f10d8bd5669a742e7d1543d5a3807ec",
+  "rubric_sha256": "1226ae16ad560ce669af7cdd0b7fbe4e2f1a022d42c3c1fd5159bd3eefa71400",
+  "rubric_leaves": 4,
+  "rubric_total_points": 40,
+  "teacher_view_file": "demo-hash-lookup.txt.teacher-ui.html",
+  "teacher_view_sha256": "35efdbcfd242f345471e93f546e8fee78abae8c5bcbc4192d7140cb0bf8bf6eb",
+  "teacher_view_bytes": 64261,
+  "steps": [
+    {
+      "name": "评测链 L1→L4",
+      "at": "2026-09-25T18:05:56.306Z"
+    },
+    {
+      "name": "开始：L1 文档解析",
+      "at": "2026-09-25T18:05:56.712Z"
+    },
+    {
+      "name": "完成：L1 文档解析",
+      "at": "2026-09-25T18:05:56.719Z"
+    },
+    {
+      "name": "开始：L2 证据聚焦",
+      "at": "2026-09-25T18:05:56.719Z"
+    },
+    {
+      "name": "完成：L2 证据聚焦",
+      "at": "2026-09-25T18:06:37.923Z"
+    },
+    {
+      "name": "开始：L3 机械验证",
+      "at": "2026-09-25T18:06:37.923Z"
+    },
+    {
+      "name": "完成：L3 机械验证",
+      "at": "2026-09-25T18:07:01.114Z"
+    },
+    {
+      "name": "开始：L4 定性评估",
+      "at": "2026-09-25T18:07:01.114Z"
+    },
+    {
+      "name": "完成：L4 定性评估",
+      "at": "2026-09-25T18:08:17.317Z"
+    },
+    {
+      "name": "评测链完成",
+      "at": "2026-09-25T18:08:17.414Z"
+    },
+    {
+      "name": "生成教师视图",
+      "at": "2026-09-25T18:08:17.414Z"
+    },
+    {
+      "name": "教师视图完成",
+      "at": "2026-09-25T18:08:17.818Z"
+    }
+  ]
+}
