@@ -38,9 +38,10 @@ const QUOTA_FILE = path.join(UPLOADS, '.quota.json');
 //   PDF 需要把整页渲染成图（"查看原文"跳页要用），耗时与内存都明显高于纯文本。
 //   REALTIME_PDF=1 表示该部署内存充足、PDF 预期能跑完；默认 0 → 提示"可能较慢/可能失败"。
 const PDF_REALTIME = process.env.REALTIME_PDF === '1';
-// 线上实测：TXT 全链约 5–6 分钟（免费档实测 325s）。PDF 需额外渲染整页图，给出更长的预计区间。
+// ★ 均为**线上免费档实测值**（2026-09-25）：
+//   TXT（2019-algebra-RR03-0272）325s ≈ 5.4 分钟；PDF（CS3223 课程实验报告，527KB）448s ≈ 7.5 分钟。
 const ETA_TXT = '约 5–6 分钟';
-const ETA_PDF = PDF_REALTIME ? '约 6–10 分钟' : '约 6–10 分钟（本部署内存较小，渲染阶段有可能失败）';
+const ETA_PDF = '约 7–8 分钟';
 const JOB_TTL_MS = Number(process.env.REALTIME_JOB_TTL_MS ?? 6 * 60 * 60 * 1000);   // 6 小时后产物不再可取
 
 const PRESETS = [
@@ -216,8 +217,8 @@ const server = http.createServer(async (req, res) => {
         eta_txt: ETA_TXT,
         eta_pdf: ETA_PDF,
         pdf_note: '**建议上传 .txt**（更快，' + ETA_TXT + '）。'
-          + 'PDF 也可以上传，但它需要把整页渲染成图，**耗时更长**（' + ETA_PDF + '）；'
-          + (PDF_REALTIME ? '' : '本部署内存较小，PDF 在渲染阶段**有可能失败** —— 失败时请改用 TXT，')
+          + 'PDF 也可以上传，它需要把整页渲染成图，**耗时更长**（' + ETA_PDF + '，免费档实测值）；'
+          + (PDF_REALTIME ? '' : '本部署内存偏紧，若失败请改用 TXT —— ')
           + '想看 PDF 的完整效果（含"查看原文"跳页）也可直接用**预置案例**。',
         note: '★ 预置案例的评价是离线预生成产物（不是实时分析）。实时分析需服务端配置模型环境变量；'
           + '上传原件与产物**不公开**，仅通过带 job token 的接口访问。',
@@ -295,9 +296,9 @@ const server = http.createServer(async (req, res) => {
         quota: { limit: QUOTA_LIMIT, used: quota.used, remaining: quotaLeft() },
         source_kind: isPdfJob ? 'pdf' : 'text',
         eta_note: isPdfJob
-          ? ('PDF 需要整页渲染，预计等待 ' + ETA_PDF + '（TXT ' + ETA_TXT + '）。'
-            + (PDF_REALTIME ? '' : '本部署内存较小，若长时间无进展或失败，请改用 TXT，或查看预置案例。'))
-          : ('预计等待 ' + ETA_TXT + '。') });
+          ? ('PDF 需要整页渲染，预计等待 ' + ETA_PDF + '（免费档实测 448 秒跑通；TXT ' + ETA_TXT + '）。'
+            + (PDF_REALTIME ? '' : '若长时间无进展或失败，请改用 TXT，或查看预置案例。'))
+          : ('预计等待 ' + ETA_TXT + '（免费档实测 325 秒）。') });
     }
 
     // ---------- 任务状态（需 token）----------
@@ -353,7 +354,7 @@ server.listen(PORT, () => {
   console.log(`AutoGrader 服务端已启动：http://localhost:${PORT}`);
   console.log(`  静态站：${path.relative(root, WEB)} ｜ 实时页：/realtime/`);
   console.log(`  配额：${quota.used}/${QUOTA_LIMIT}（★ 仅"当前实例运行期间"有效；平台休眠/重建后会重置）｜ 并发上限：${CONCURRENCY}`);
-  console.log(`  上传上限：${MAX_UPLOAD_MB} MB ｜ 产物 TTL：${Math.round(JOB_TTL_MS / 3600000)} 小时 ｜ PDF 支持：${PDF_REALTIME ? '已开启（内存充足）' : '可以上传但较慢、可能失败（建议 TXT）'}`);
+  console.log(`  上传上限：${MAX_UPLOAD_MB} MB ｜ 产物 TTL：${Math.round(JOB_TTL_MS / 3600000)} 小时 ｜ PDF：${PDF_REALTIME ? '已开启（内存充足）' : '可上传（实测约 7–8 分钟）'}`);
   const hasKey = !!(process.env.LLM_API_KEY && process.env.LLM_BASE_URL && process.env.LLM_MODEL);
   console.log(`  模型配置：${hasKey ? '已就绪' : '未配置 → 仅预置案例可用（/api/analyze 返回 503）'}`
     + (hasKey ? `（base=${String(process.env.LLM_BASE_URL).replace(/\/+$/, '')}  model=${JSON.stringify(String(process.env.LLM_MODEL))}  key=已设置）` : ''));
