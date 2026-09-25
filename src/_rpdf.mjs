@@ -14,7 +14,7 @@ const launch = (pdfOn) => {
     LLM_BASE_URL: process.env.LLM_BASE_URL || 'https://api.deepseek.com/v1',
     LLM_API_KEY: process.env.LLM_API_KEY || process.env.DEEPSEEK_API_KEY,
     LLM_MODEL: (process.env.LLM_MODEL || 'deepseek-flash'),
-    REALTIME_QUOTA: '6', REALTIME_CONCURRENCY: '1',
+    REALTIME_QUOTA: '6', REALTIME_CONCURRENCY: '3',   // 本脚本只验证'放行/文案'，并发调大避免测试之间互相挤占
   };
   if (pdfOn) env.REALTIME_PDF = '1'; else delete env.REALTIME_PDF;
   return spawn(process.execPath, [path.join(here, 'server.mjs'), '--port', String(PORT)], { cwd: root, stdio: 'ignore', env });
@@ -26,9 +26,24 @@ const ck = (n, ok, extra = '') => { (ok ? pass++ : fail++); console.log('  ' + (
 
 const pdfB64 = fs.readFileSync(path.join(root, 'fixtures/uploads/new-report-pendulum.pdf')).toString('base64');
 const txtB64 = fs.readFileSync(path.join(root, 'fixtures/veras/holdout/2019-algebra-RR03-0272.txt')).toString('base64');
-const post = (name, b64) => fetch(B + '/api/analyze', { method: 'POST', headers: { 'content-type': 'application/json' },
-  body: JSON.stringify({ source: 'upload', file_name: name, file_base64: b64,
-    rubric: 'design/canonical-rubric.veras-pendulum.json', profile: 'design/rubric-assessment-profile.veras-pendulum.json' }) });
+const post = async (name, b64) => {
+  const r = await fetch(B + '/api/analyze', { method: 'POST', headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ source: 'upload', file_name: name, file_base64: b64,
+      rubric: 'design/canonical-rubric.veras-pendulum.json', profile: 'design/rubric-assessment-profile.veras-pendulum.json' }) });
+  if (r.status >= 400) {   // ★ 失败时把服务端说的原因打出来，别靠猜
+    const j = await r.clone().json().catch(() => ({}));
+    console.log('      [服务端响应] ' + JSON.stringify(j).slice(0, 200));
+  }
+  return r;
+};
+
+// ★ 配额是持久化的（.quota.json），反复跑测试会累积到用尽 → 会得到 429 的**假失败**。
+//   这里显式把它写回 0（只是自测的环境准备，不改变被测行为）。
+try {
+  fs.writeFileSync(path.join(root, 'fixtures/uploads/.quota.json'),
+    JSON.stringify({ date: new Date().toISOString().slice(0, 10), used: 0 }), 'utf8');
+  console.log('（已把本地配额文件重置为 0/…，避免累积导致假失败）');
+} catch (e) { console.log('（配额重置失败：' + e.message + '）'); }
 
 console.log('=== A. 默认（PDF 实时关闭，即免费档配置）===');
 let srv = launch(false); await ready();

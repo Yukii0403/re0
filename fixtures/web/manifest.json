@@ -1,7 +1,7 @@
 {
   "kind": "static-demo-site",
   "note": "★ 预置案例演示：所有评价为离线预生成产物，不是实时分析。无任何密钥。",
-  "generated_at": "2026-09-25T12:01:39.740Z",
+  "generated_at": "2026-09-25T12:26:04.937Z",
   "cases": [
     {
       "id": "cs3223-writeup.pdf",
@@ -9,7 +9,7 @@
       "kind": "pdf",
       "file": "cases/cs3223-writeup.pdf.html",
       "bytes": 2212421,
-      "sha256": "8b797bd738955d20",
+      "sha256": "c217fa102a0068cf",
       "source": "GitHub 上的 CS3223-DBMS-Project 公开课程报告"
     },
     {
@@ -18,7 +18,7 @@
       "kind": "text",
       "file": "cases/2019-calculus-RR03-0503.txt.html",
       "bytes": 80280,
-      "sha256": "f0197664fe2ea0c8",
+      "sha256": "bfa37cfdf92c4c4d",
       "source": "VerAs（自动化评分研究）公开数据集"
     }
   ]
