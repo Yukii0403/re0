@@ -1,0 +1,263 @@
+{
+  "doc": {
+    "name": "实验二_模型调参与分析.pdf",
+    "kind": "pdf",
+    "sha256": "9f2c1b7e4a1d5c03b8e6472a0f19d3c5e2b704168fb93a1cd0e5f27a4b6c8d31",
+    "chars": 258,
+    "text_file": "document-index.example.txt",
+    "generator": "l1/1.3.0",
+    "warnings": [],
+    "line_coverage": "13/13",
+    "tables": 1
+  },
+  "tables": [
+    {
+      "id": "t0001",
+      "caption_entry": "e0009",
+      "entry_range": "e0010-e0013",
+      "header_detected": true,
+      "column_count": 3,
+      "columns": [
+        {
+          "text": "配置",
+          "start": 162,
+          "end": 164
+        },
+        {
+          "text": "验证准确率",
+          "start": 166,
+          "end": 171
+        },
+        {
+          "text": "训练时长(min)",
+          "start": 173,
+          "end": 182
+        }
+      ],
+      "rows": [
+        {
+          "label": "baseline",
+          "cells": [
+            {
+              "text": "baseline",
+              "start": 183,
+              "end": 191
+            },
+            {
+              "text": "0.812",
+              "start": 193,
+              "end": 198
+            },
+            {
+              "text": "6.4",
+              "start": 200,
+              "end": 203
+            }
+          ]
+        },
+        {
+          "label": "+ attention",
+          "cells": [
+            {
+              "text": "+ attention",
+              "start": 204,
+              "end": 215
+            },
+            {
+              "text": "0.847",
+              "start": 217,
+              "end": 222
+            },
+            {
+              "text": "7.1",
+              "start": 224,
+              "end": 227
+            }
+          ]
+        },
+        {
+          "label": "+ attention + 数据增强",
+          "cells": [
+            {
+              "text": "+ attention + 数据增强",
+              "start": 228,
+              "end": 246
+            },
+            {
+              "text": "0.861",
+              "start": 248,
+              "end": 253
+            },
+            {
+              "text": "9.8",
+              "start": 255,
+              "end": 258
+            }
+          ]
+        }
+      ],
+      "truncated": false,
+      "truncated_at": null,
+      "key_query_safe": true,
+      "cell_split_source": "text_wide_space"
+    }
+  ],
+  "entries": [
+    {
+      "id": "e0001",
+      "text": "实验二 模型调参与分析",
+      "type": "heading",
+      "num": null,
+      "level": 1,
+      "page": 1,
+      "lines": 1,
+      "start": 0,
+      "end": 11,
+      "table_id": null
+    },
+    {
+      "id": "e0002",
+      "text": "3 实验结果",
+      "type": "heading",
+      "num": "3",
+      "level": 1,
+      "page": 3,
+      "lines": 1,
+      "start": 12,
+      "end": 18,
+      "table_id": null
+    },
+    {
+      "id": "e0003",
+      "text": "本实验采用交叉熵损失衡量模型收敛情况。",
+      "type": "paragraph",
+      "num": null,
+      "level": null,
+      "page": 3,
+      "lines": 1,
+      "start": 19,
+      "end": 38,
+      "table_id": null
+    },
+    {
+      "id": "e0004",
+      "text": "L = -1/N * sum(y_i * log(y_hat_i))",
+      "type": "formula",
+      "num": null,
+      "level": null,
+      "page": 3,
+      "lines": 1,
+      "start": 39,
+      "end": 73,
+      "table_id": null
+    },
+    {
+      "id": "e0005",
+      "text": "(1)",
+      "type": "formula",
+      "num": "1",
+      "level": null,
+      "page": 3,
+      "lines": 1,
+      "start": 74,
+      "end": 77,
+      "table_id": null
+    },
+    {
+      "id": "e0006",
+      "text": "def train(model, loader, lr):",
+      "type": "code",
+      "num": null,
+      "level": null,
+      "page": 3,
+      "lines": 1,
+      "start": 78,
+      "end": 107,
+      "table_id": null
+    },
+    {
+      "id": "e0007",
+      "text": "    for x, y in loader:",
+      "type": "code",
+      "num": null,
+      "level": null,
+      "page": 3,
+      "lines": 1,
+      "start": 108,
+      "end": 131,
+      "table_id": null
+    },
+    {
+      "id": "e0008",
+      "text": "图 3 不同学习率下的验证损失曲线",
+      "type": "figure",
+      "num": "3",
+      "level": null,
+      "page": 3,
+      "lines": 1,
+      "start": 132,
+      "end": 149,
+      "table_id": null
+    },
+    {
+      "id": "e0009",
+      "text": "表 4 各模块消融对比",
+      "type": "table",
+      "num": "4",
+      "level": null,
+      "page": 4,
+      "lines": 1,
+      "start": 150,
+      "end": 161,
+      "table_id": null
+    },
+    {
+      "id": "e0010",
+      "text": "配置  验证准确率  训练时长(min)",
+      "type": "paragraph",
+      "num": null,
+      "level": null,
+      "page": 4,
+      "lines": 1,
+      "start": 162,
+      "end": 182,
+      "table_id": "t0001"
+    },
+    {
+      "id": "e0011",
+      "text": "baseline  0.812  6.4",
+      "type": "paragraph",
+      "num": null,
+      "level": null,
+      "page": 4,
+      "lines": 1,
+      "start": 183,
+      "end": 203,
+      "table_id": "t0001"
+    },
+    {
+      "id": "e0012",
+      "text": "+ attention  0.847  7.1",
+      "type": "paragraph",
+      "num": null,
+      "level": null,
+      "page": 4,
+      "lines": 1,
+      "start": 204,
+      "end": 227,
+      "table_id": "t0001"
+    },
+    {
+      "id": "e0013",
+      "text": "+ attention + 数据增强  0.861  9.8",
+      "type": "paragraph",
+      "num": null,
+      "level": null,
+      "page": 4,
+      "lines": 1,
+      "start": 228,
+      "end": 258,
+      "table_id": "t0001"
+    }
+  ]
+}

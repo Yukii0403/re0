@@ -1,0 +1,151 @@
+{
+  "rubric_id": "rb_veras_pendulum",
+  "frozen_at": "2026-09-24T00:00:00+08:00",
+  "immutable": true,
+  "generator": "veras-adapter/1.0",
+  "source": {
+    "file": "rubric-pendulum-part1.txt",
+    "sha256": "c4162ee6be8ba6ee82ccedb0d9574c09ad9d3e1eb289c8d39e470bd4cc371b61",
+    "kind": "text",
+    "adapter": "text-v1",
+    "chars": 4166
+  },
+  "items": [
+    {
+      "id": "R1",
+      "parent": null,
+      "depth": 0,
+      "order": 1,
+      "text": "1. Is able to state the research question for reader clarity.",
+      "score_raw": "5 分（等级表为 1–5 五点；0=未涉及该维度不由 rubric 定义，v0.3 起由 outside_defined_levels 状态承载）",
+      "source_ref": {
+        "file": "rubric-pendulum-part1.txt",
+        "sha256": "c4162ee6be8ba6ee82ccedb0d9574c09ad9d3e1eb289c8d39e470bd4cc371b61",
+        "start": 87,
+        "end": 148,
+        "page": null,
+        "row": null
+      },
+      "derived_by": "numbering",
+      "children": []
+    },
+    {
+      "id": "R2",
+      "parent": null,
+      "depth": 0,
+      "order": 2,
+      "text": "2. Is able to describe how the experiment with mass as the independent variable addressed the research question and what claim can be made.  The mass vs. period graph and error bars are referred to in the discussion.",
+      "score_raw": "5 分（等级表为 1–5 五点；0=未涉及该维度不由 rubric 定义，v0.3 起由 outside_defined_levels 状态承载）",
+      "source_ref": {
+        "file": "rubric-pendulum-part1.txt",
+        "sha256": "c4162ee6be8ba6ee82ccedb0d9574c09ad9d3e1eb289c8d39e470bd4cc371b61",
+        "start": 783,
+        "end": 999,
+        "page": null,
+        "row": null
+      },
+      "derived_by": "numbering",
+      "children": []
+    },
+    {
+      "id": "R3",
+      "parent": null,
+      "depth": 0,
+      "order": 3,
+      "text": "3. Is able to describe how the experiment with length as the independent variable addressed the research question and what claim can be made.  The length vs. period graph and error bars are referred to in the discussion.",
+      "score_raw": "5 分（等级表为 1–5 五点；0=未涉及该维度不由 rubric 定义，v0.3 起由 outside_defined_levels 状态承载）",
+      "source_ref": {
+        "file": "rubric-pendulum-part1.txt",
+        "sha256": "c4162ee6be8ba6ee82ccedb0d9574c09ad9d3e1eb289c8d39e470bd4cc371b61",
+        "start": 2397,
+        "end": 2617,
+        "page": null,
+        "row": null
+      },
+      "derived_by": "numbering",
+      "children": []
+    },
+    {
+      "id": "R4",
+      "parent": null,
+      "depth": 0,
+      "order": 4,
+      "text": "4. Is able to describe how the experiment with angle of release as the independent variable addressed the research question and what claim can be made.  The angle of release vs. period graph and error bars are referred to in the discussion.",
+      "score_raw": "5 分（等级表为 1–5 五点；0=未涉及该维度不由 rubric 定义，v0.3 起由 outside_defined_levels 状态承载）",
+      "source_ref": {
+        "file": "rubric-pendulum-part2.txt",
+        "sha256": "86130ee49f44b0194154bf6d75518d72a4fef5d251992ede720333019d43c51e",
+        "start": 0,
+        "end": 240,
+        "page": null,
+        "row": null
+      },
+      "derived_by": "numbering",
+      "children": []
+    },
+    {
+      "id": "R5",
+      "parent": null,
+      "depth": 0,
+      "order": 5,
+      "text": "5. Is able to provide the correct theoretical equation for the period of a pendulum and discuss how the mathematical model produced from the lab data supports, or does not support, the theoretical model.",
+      "score_raw": "5 分（等级表为 1–5 五点；0=未涉及该维度不由 rubric 定义，v0.3 起由 outside_defined_levels 状态承载）",
+      "source_ref": {
+        "file": "rubric-pendulum-part2.txt",
+        "sha256": "86130ee49f44b0194154bf6d75518d72a4fef5d251992ede720333019d43c51e",
+        "start": 1809,
+        "end": 2012,
+        "page": null,
+        "row": null
+      },
+      "derived_by": "numbering",
+      "children": []
+    },
+    {
+      "id": "R6",
+      "parent": null,
+      "depth": 0,
+      "order": 6,
+      "text": "6. Is able to identify random errors and how they were reduced or could be reduced. (Systematic errors are included when applicable.)",
+      "score_raw": "5 分（等级表为 1–5 五点；0=未涉及该维度不由 rubric 定义，v0.3 起由 outside_defined_levels 状态承载）",
+      "source_ref": {
+        "file": "rubric-pendulum-part2.txt",
+        "sha256": "86130ee49f44b0194154bf6d75518d72a4fef5d251992ede720333019d43c51e",
+        "start": 2605,
+        "end": 2738,
+        "page": null,
+        "row": null
+      },
+      "derived_by": "numbering",
+      "children": []
+    },
+    {
+      "id": "R7",
+      "parent": null,
+      "depth": 0,
+      "order": 7,
+      "text": "7. Is able to identify constraints within the experiment and discuss how these may affect the generalizability of the results.",
+      "score_raw": "5 分（等级表为 1–5 五点；0=未涉及该维度不由 rubric 定义，v0.3 起由 outside_defined_levels 状态承载）",
+      "source_ref": {
+        "file": "rubric-pendulum-part2.txt",
+        "sha256": "86130ee49f44b0194154bf6d75518d72a4fef5d251992ede720333019d43c51e",
+        "start": 3031,
+        "end": 3157,
+        "page": null,
+        "row": null
+      },
+      "derived_by": "numbering",
+      "children": []
+    }
+  ],
+  "validation": {
+    "text_verbatim_ok": true,
+    "line_coverage": "15/15",
+    "unparsed_lines": [],
+    "notes": [
+      "rubric 原文由**我们自己的 L1** 从数据集给的 docx 解析（l1/1.3.1，txt 通道之外的 docx 通路）。",
+      "canonical rubric 的 source 指向 part1（Pendulum_Rubric_Reformatted_part1.docx）；part2 的条目在自己的 source_ref.file 里指向 part2。",
+      "维度陈述与等级/条项原文都按\"切片 === 原文\"生成，偏移全部实测。"
+    ]
+  }
+}

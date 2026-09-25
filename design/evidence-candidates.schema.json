@@ -1,0 +1,295 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://autograder.local/schemas/evidence-candidates.schema.json",
+  "title": "EvidenceCandidates",
+  "description": "L2 输出：候选证据。只定位、不评价。权威方向单向：canonical rubric（不可变，唯一评分权威）→ retrieval plan（可修订，不参与评分）→ 候选。★ 本 schema 是「不带评价」的**主要**安全机制：additionalProperties:false 且没有任何评分字段 —— L2 在结构上就无法产生评分字段（不依赖禁用词表那种会被语言变体绕过、还会误伤原文 quote 的手段）。★ rubric 与 plan 都只引用不复制，各自只存在一处权威副本。★ 一条证据是一个 bundle：可含多个 span（原文片段）与多个 asset_ref（页图/裁剪图等）。每个 span 的 quote 必须能按 source_ref + offset 逐字切回原文。",
+  "type": "object",
+  "required": ["authority", "doc", "rubric", "retrieval_plan", "evidence", "diagnostics"],
+  "additionalProperties": false,
+  "properties": {
+
+    "authority": {
+      "type": "object",
+      "description": "权威声明。任何一层不得改写本块。",
+      "required": ["scoring_authority", "rubric_immutable", "rubric_sha256", "plan_participates_in_scoring"],
+      "additionalProperties": false,
+      "properties": {
+        "scoring_authority": { "type": "string", "const": "rubric" },
+        "rubric_immutable": { "type": "boolean", "const": true },
+        "rubric_sha256": { "type": "string" },
+        "plan_participates_in_scoring": { "type": "boolean", "const": false },
+        "notes": { "type": "string" }
+      }
+    },
+
+    "doc": {
+      "type": "object",
+      "required": ["name", "sha256", "text_file", "chars"],
+      "additionalProperties": false,
+      "properties": {
+        "name": { "type": "string" },
+        "sha256": { "type": "string" },
+        "text_file": { "type": "string" },
+        "index_file": { "type": "string" },
+        "chars": { "type": "integer", "minimum": 0 }
+      }
+    },
+
+    "rubric": {
+      "type": "object",
+      "description": "★ 只引用，不复制。canonical rubric 是唯一存放 rubric 文本的地方。",
+      "required": ["rubric_id", "sha256", "file"],
+      "additionalProperties": false,
+      "properties": {
+        "rubric_id": { "type": "string" },
+        "sha256": { "type": "string", "description": "教师上传原件的哈希 —— 冻结凭据" },
+        "file": { "type": "string" },
+        "frozen_at": { "type": ["string", "null"], "format": "date-time" }
+      }
+    },
+
+    "retrieval_plan": {
+      "type": "object",
+      "description": "★ 只引用，不复制。plan 独立存储（retrieval-plan.schema.json），本文件只保存指到某一版的引用。sha256 是 plan 文件本身的哈希，用于确认『用的是哪一版』。",
+      "required": ["plan_id", "version", "batch_id", "sha256", "file"],
+      "additionalProperties": false,
+      "properties": {
+        "plan_id": { "type": "string" },
+        "version": { "type": "integer", "minimum": 1 },
+        "batch_id": { "type": "string" },
+        "sha256": { "type": "string", "description": "plan 文件字节的哈希 —— 版本绑定凭据" },
+        "file": { "type": "string" },
+        "pinned": { "type": ["boolean", "null"] }
+      }
+    },
+
+    "evidence": {
+      "type": "array",
+      "description": "证据 bundle。同一 (rubric_item, facet) 下可以有多条 bundle；一条 bundle 可由多个原文片段共同构成。",
+      "items": {
+        "type": "object",
+        "required": ["id", "rubric_item_id", "spans"],
+        "additionalProperties": false,
+        "properties": {
+          "id": { "type": "string", "pattern": "^ev[0-9]{4}$" },
+          "rubric_item_id": { "type": "string", "pattern": "^R[0-9]{1,2}(?:\\.[0-9]{1,2})*$", "description": "指向 canonical rubric 条目，可为任意深度" },
+          "facet_id": { "type": ["string", "null"], "description": "只作诊断用：哪个检索面找到了它" },
+          "spans": {
+            "type": "array",
+            "minItems": 1,
+            "description": "原文片段。至少一个。多个 span 表示这条证据是由几处原文共同构成的（例如指向图的句子 + 图注）。",
+            "items": {
+              "type": "object",
+              "required": ["quote", "source_ref", "offset", "match_type", "found_by"],
+              "additionalProperties": false,
+              "properties": {
+                "quote": { "type": "string", "description": "模型给出的逐字引用串。系统负责绑定偏移；对不上即判废。" },
+                "source_ref": {
+                  "type": "object",
+                  "required": ["file", "sha256"],
+                  "additionalProperties": false,
+                  "properties": {
+                    "file": { "type": "string" },
+                    "sha256": { "type": "string" },
+                    "page": { "type": ["integer", "null"] },
+                    "entry": { "type": ["string", "null"], "description": "L1 索引条目 id，用于回到原始像素" }
+                  }
+                },
+                "offset": {
+                  "type": "object",
+                  "required": ["start", "end"],
+                  "additionalProperties": false,
+                  "properties": {
+                    "start": { "type": "integer", "minimum": 0 },
+                    "end": { "type": "integer", "minimum": 0 }
+                  }
+                },
+                "context": {
+                  "type": "object",
+                  "description": "原始上下文，由系统切出、逐字。",
+                  "additionalProperties": false,
+                  "properties": {
+                    "before": { "type": "string" },
+                    "after": { "type": "string" }
+                  }
+                },
+                "match_type": {
+                  "type": "string",
+                  "enum": ["verbatim", "synonym", "implicit", "cross_block"],
+                  "description": "与 rubric 条目的对应关系强弱。不确定性表达在这里，而不是表达在『要不要纳入』上。"
+                },
+                "found_by": {
+                  "type": "array",
+                  "minItems": 1,
+                  "items": {
+                    "type": "string",
+                    "enum": [
+                      "rule:numeric", "rule:relation", "rule:numbering", "rule:keyword",
+                      "structure:table", "structure:figure", "structure:formula", "structure:code",
+                      "llm:semantic"
+                    ]
+                  }
+                },
+                "binding": {
+                  "type": "object",
+                  "description": "引用是怎么绑到这一处的 —— 让『同一句话在原文出现多次』的歧义可见，而不是被默默吞掉。",
+                  "required": ["mode", "occurrences"],
+                  "additionalProperties": false,
+                  "properties": {
+                    "mode": { "type": "string", "enum": ["entry_hint", "cursor", "first"] },
+                    "occurrences": { "type": "integer", "minimum": 1, "description": "该 quote 在原文里一共出现几次" },
+                    "ambiguous": { "type": "boolean", "description": "true = 多次出现且无可信提示，只能取首次" }
+                  }
+                }
+              }
+            }
+          },
+          "asset_refs": {
+            "type": "array",
+            "description": "这条证据用到的资产。图 / 表的像素内容只能靠渲染原始页来读 —— 这是完整原文原则在图表上的落地。",
+            "items": {
+              "type": "object",
+              "required": ["kind", "ref"],
+              "additionalProperties": false,
+              "properties": {
+                "kind": {
+                  "type": "string",
+                  "enum": ["page_render", "node_crop", "embedded_image", "csv_export"]
+                },
+                "ref": { "type": "string", "description": "资产路径或 id" },
+                "page": { "type": ["integer", "null"] },
+                "note": { "type": ["string", "null"], "maxLength": 120, "description": "只允许描述性表述" }
+              }
+            }
+          },
+          "note": { "type": "string", "maxLength": 120, "description": "唯一自由文本。只允许描述性表述。" }
+        }
+      }
+    },
+
+    "diagnostics": {
+      "type": "object",
+      "description": "检索诊断。★ 只作诊断：facet coverage 不等于 evidence recall，不能冒充 recall，更不能直接导出分数。evidence recall 只在评测环节用人工 gold set 计算，本产物刻意不含该字段。",
+      "required": ["diagnostic_only", "facet_coverage"],
+      "additionalProperties": false,
+      "properties": {
+        "diagnostic_only": { "type": "boolean", "const": true },
+        "notice": { "type": "string" },
+        "facet_coverage": {
+          "type": "array",
+          "description": "每个 facet 都要有记录，**含 0 命中的**，否则看不出「这条通道没找到」。status 描述检索健康度，outcome 描述命中结果 —— 两者分开，是为了不让「读不到」被记成「没找到」：status=source_unavailable 或 channel_error 时 outcome 必须是 undetermined，不许写成 no_candidate。",
+          "items": {
+            "type": "object",
+            "required": ["rubric_item_id", "facet_id", "hits", "status", "outcome"],
+            "additionalProperties": false,
+            "properties": {
+              "rubric_item_id": { "type": "string" },
+              "facet_id": { "type": "string" },
+              "form": { "type": ["string", "null"] },
+              "modality": { "type": ["array", "null"], "items": { "type": "string" } },
+              "channels": {
+                "type": "object",
+                "description": "各通道命中数。同一候选可被多通道命中，**故不可相加**。",
+                "additionalProperties": { "type": "integer", "minimum": 0 }
+              },
+              "hits": { "type": "integer", "minimum": 0 },
+              "status": {
+                "type": "string",
+                "enum": ["complete", "partial", "source_unavailable", "channel_error"],
+                "description": "检索健康度。complete=声明的通道全部跑完 / partial=只跑了一部分 / source_unavailable=该模态的材料在原文里读不到 / channel_error=至少一个通道执行失败"
+              },
+              "outcome": {
+                "type": "string",
+                "enum": ["located", "no_candidate", "undetermined"],
+                "description": "命中结果。undetermined = 因为 source_unavailable / channel_error，无法判定 —— 这不是「学生没写」"
+              },
+              "reason": { "type": ["string", "null"], "description": "status 非 complete 时说明原因" },
+              "hard_rule_overridden": {
+                "type": "boolean",
+                "description": "★ 硬规则覆写可见：模型给的 status 属 {source_unavailable, channel_error} 却报了 located / no_candidate 时，系统把它覆写成 undetermined 并置此位。既不放行错误组合，也不丢掉模型原本说的话（原值见 outcome_claimed）。"
+              },
+              "outcome_claimed": {
+                "type": ["string", "null"],
+                "description": "模型原本报的 outcome —— 只有被覆写时才写，用于复盘"
+              },
+              "dropped": {
+                "type": "array",
+                "description": "★ 判废的候选（quote 绑不回原文）—— **必须可见**，不能静默丢掉。判废也不等于「未找到候选」：前者是提交的东西有问题，后者是材料里确实没有。",
+                "items": {
+                  "type": "object",
+                  "required": ["quote", "reason"],
+                  "additionalProperties": false,
+                  "properties": {
+                    "quote": { "type": "string" },
+                    "reason": { "type": "string" },
+                    "occurrences": { "type": "integer", "minimum": 0 }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "rubric_item_summary": {
+          "type": "array",
+          "description": "按 rubric 条目汇总。no_candidate 的含义是『未找到候选』，不是『学生没写』。★ 汇总型父项标 skipped_summary：它**不单独检索**（由子项覆盖），这不是『没找到』。",
+          "items": {
+            "type": "object",
+            "required": ["rubric_item_id", "candidates"],
+            "additionalProperties": false,
+            "properties": {
+              "rubric_item_id": { "type": "string" },
+              "candidates": { "type": "integer", "minimum": 0 },
+              "status": { "type": "string", "enum": ["complete", "partial", "source_unavailable", "channel_error"] },
+              "outcome": {
+                "type": "string",
+                "enum": ["located", "no_candidate", "undetermined", "skipped_summary"],
+                "description": "skipped_summary 只用于**汇总型父项**：它由子项覆盖，因此不单独检索。写成 no_candidate 会把它读成『没找到』—— 那是另一件事。"
+              },
+              "retrieval_skipped": {
+                "type": "boolean",
+                "description": "★ 该条目有没有被跳过检索。跳过的理由只有一种：它是汇总型父项（有子项），单独检索只会产生重复证据与多余调用。"
+              },
+              "children": { "type": "array", "items": { "type": "string" }, "description": "汇总父项的子项 id（跳过的依据）。" },
+              "scanned": { "type": "array", "items": { "type": "string" } },
+              "notes": { "type": "array", "items": { "type": "string" } }
+            }
+          }
+        }
+      }
+    },
+
+    "advisory_lint": {
+      "type": "object",
+      "description": "★ 辅助手段，不是主要安全机制。主机制是 schema 本身：封闭 + 无评分字段。禁用词表覆盖不了语言变体、且会误伤原文 quote，所以本块只扫**模型生成的自由文本字段**，绝不扫 quote / context / 任何原文派生字段；只提示不阻断。",
+      "required": ["advisory", "scanned_fields"],
+      "additionalProperties": false,
+      "properties": {
+        "advisory": { "type": "boolean", "const": true },
+        "scanned_fields": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "只允许是模型生成的字段，如 evidence[].note / asset_refs[].note。绝不能包含 quote / context"
+        },
+        "passed": { "type": "boolean" },
+        "notice": {
+          "type": "string",
+          "description": "★ 只是提示：passed=false **不阻断产物写出**，也不改变任何判定。它还会误伤合法术语（示例里「验证准确率」命中「准确」），这正是它不能当硬闸的原因。"
+        },
+        "banned_words": { "type": "array", "items": { "type": "string" } },
+        "violations": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["path", "word"],
+            "additionalProperties": false,
+            "properties": {
+              "path": { "type": "string" },
+              "word": { "type": "string" },
+              "text": { "type": "string" }
+            }
+          }
+        }
+      }
+    }
+  }
+}

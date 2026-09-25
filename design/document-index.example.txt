@@ -1,0 +1,13 @@
+实验二 模型调参与分析
+3 实验结果
+本实验采用交叉熵损失衡量模型收敛情况。
+L = -1/N * sum(y_i * log(y_hat_i))
+(1)
+def train(model, loader, lr):
+    for x, y in loader:
+图 3 不同学习率下的验证损失曲线
+表 4 各模块消融对比
+配置  验证准确率  训练时长(min)
+baseline  0.812  6.4
++ attention  0.847  7.1
++ attention + 数据增强  0.861  9.8

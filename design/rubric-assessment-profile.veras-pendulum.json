@@ -1,0 +1,446 @@
+{
+  "profile_id": "rap_veras_pendulum_v1",
+  "version": 1,
+  "status": "provisional_test",
+  "notes": "VerAs 公开 rubric（不是教师 gold 的一部分，而是数据集作者给的详细评分标准）接进 L4 的执行配置。两种策略并存：①5 级量表（levels，等级描述逐字来自 rubric）②按条项计分（points + criteria）。min=0/step=1 是执行策略；0 分表示\"未涉及该维度\"，对应 VerAs 的 verifier 判定。",
+  "rubric": {
+    "rubric_id": "rb_veras_pendulum",
+    "source_sha256": "c4162ee6be8ba6ee82ccedb0d9574c09ad9d3e1eb289c8d39e470bd4cc371b61"
+  },
+  "items": [
+    {
+      "rubric_item_id": "R1",
+      "scorable": true,
+      "scoring_strategy": {
+        "type": "levels",
+        "min": 1,
+        "max": 5,
+        "step": 1,
+        "levels": [
+          {
+            "level_id": "L1",
+            "score": 1,
+            "text": "Research question is included but incorrectly stated. Does not give an explicit statement of the three variables.",
+            "source_ref": {
+              "file": "rubric-pendulum-part1.txt",
+              "sha256": "c4162ee6be8ba6ee82ccedb0d9574c09ad9d3e1eb289c8d39e470bd4cc371b61",
+              "start": 149,
+              "end": 262
+            }
+          },
+          {
+            "level_id": "L2",
+            "score": 2,
+            "text": "Research question is included but incorrectly stated. Gives an explicit statement of the three variables.",
+            "source_ref": {
+              "file": "rubric-pendulum-part1.txt",
+              "sha256": "c4162ee6be8ba6ee82ccedb0d9574c09ad9d3e1eb289c8d39e470bd4cc371b61",
+              "start": 263,
+              "end": 368
+            }
+          },
+          {
+            "level_id": "L3",
+            "score": 3,
+            "text": "Research question is included and correctly stated. Gives an explicit but incomplete statement of the three variables.",
+            "source_ref": {
+              "file": "rubric-pendulum-part1.txt",
+              "sha256": "c4162ee6be8ba6ee82ccedb0d9574c09ad9d3e1eb289c8d39e470bd4cc371b61",
+              "start": 369,
+              "end": 487
+            }
+          },
+          {
+            "level_id": "L4",
+            "score": 4,
+            "text": "Research question is included and correctly stated. Gives an explicit statement of the three variables.",
+            "source_ref": {
+              "file": "rubric-pendulum-part1.txt",
+              "sha256": "c4162ee6be8ba6ee82ccedb0d9574c09ad9d3e1eb289c8d39e470bd4cc371b61",
+              "start": 488,
+              "end": 591
+            }
+          },
+          {
+            "level_id": "L5",
+            "score": 5,
+            "text": "Research question is included and correctly stated: “What affects the period of a pendulum?” Includes an explicit statement of the three variables: mass, angle of release, and string length.",
+            "source_ref": {
+              "file": "rubric-pendulum-part1.txt",
+              "sha256": "c4162ee6be8ba6ee82ccedb0d9574c09ad9d3e1eb289c8d39e470bd4cc371b61",
+              "start": 592,
+              "end": 782
+            }
+          }
+        ]
+      },
+      "strategy_source_ref": {
+        "file": "rubric-pendulum-part1.txt",
+        "start": 149,
+        "end": 782
+      }
+    },
+    {
+      "rubric_item_id": "R2",
+      "scorable": true,
+      "scoring_strategy": {
+        "type": "levels",
+        "min": 1,
+        "max": 5,
+        "step": 1,
+        "levels": [
+          {
+            "level_id": "L1",
+            "score": 1,
+            "text": "Claim about mass is wrong (correlates mass to period). Does not mention holding other variables constant. Does not refer to the plots with error bars.Note: Error bar discussion could also have a correct explanation of standard deviation of uncertainty, one standard error, a particular confidence interval or one other way to explain error bars.",
+            "source_ref": {
+              "file": "rubric-pendulum-part1.txt",
+              "sha256": "c4162ee6be8ba6ee82ccedb0d9574c09ad9d3e1eb289c8d39e470bd4cc371b61",
+              "start": 1000,
+              "end": 1345
+            }
+          },
+          {
+            "level_id": "L2",
+            "score": 2,
+            "text": "Claim about mass is wrong (correlates mass to period). Mentions holding other variables constant. Does not refer to the plots with error bars.ORCorrect claim about mass (no correlation of mass to period). Does not mention holding other variables constant. Refers to the plots with error bars.",
+            "source_ref": {
+              "file": "rubric-pendulum-part1.txt",
+              "sha256": "c4162ee6be8ba6ee82ccedb0d9574c09ad9d3e1eb289c8d39e470bd4cc371b61",
+              "start": 1346,
+              "end": 1639
+            }
+          },
+          {
+            "level_id": "L3",
+            "score": 3,
+            "text": "Claim about mass is correct (no correlation of mass to period). Mentions holding other variables constant. Does not refer to the plots with error bars.ORClaim about mass is wrong (correlates mass to period). Mentions holding other variables constant. Refers to the plot with error bars.",
+            "source_ref": {
+              "file": "rubric-pendulum-part1.txt",
+              "sha256": "c4162ee6be8ba6ee82ccedb0d9574c09ad9d3e1eb289c8d39e470bd4cc371b61",
+              "start": 1640,
+              "end": 1926
+            }
+          },
+          {
+            "level_id": "L4",
+            "score": 4,
+            "text": "Claim about mass is correct (no correlation of mass to period). Does not mention holding other variables constant.Refers to plot with error bars.",
+            "source_ref": {
+              "file": "rubric-pendulum-part1.txt",
+              "sha256": "c4162ee6be8ba6ee82ccedb0d9574c09ad9d3e1eb289c8d39e470bd4cc371b61",
+              "start": 1927,
+              "end": 2073
+            }
+          },
+          {
+            "level_id": "L5",
+            "score": 5,
+            "text": "A discussion is included with adequate reasoning or justification for how the evidence (graphed data) supports the claim (no correlation of mass to period).  Mentions holding the other variables constant. Error bars, their size, and the equivalency criterion are discussed with respect to how the mass affects the period.",
+            "source_ref": {
+              "file": "rubric-pendulum-part1.txt",
+              "sha256": "c4162ee6be8ba6ee82ccedb0d9574c09ad9d3e1eb289c8d39e470bd4cc371b61",
+              "start": 2074,
+              "end": 2396
+            }
+          }
+        ]
+      },
+      "strategy_source_ref": {
+        "file": "rubric-pendulum-part1.txt",
+        "start": 1000,
+        "end": 2396
+      }
+    },
+    {
+      "rubric_item_id": "R3",
+      "scorable": true,
+      "scoring_strategy": {
+        "type": "levels",
+        "min": 1,
+        "max": 5,
+        "step": 1,
+        "levels": [
+          {
+            "level_id": "L1",
+            "score": 1,
+            "text": "Claim about length is wrong (no correlation of length to period). Does not mention holding other variables constant. Does not refer to the plots with error bars.Note: Error bar discussion could also have a correct explanation of standard deviation of uncertainty, one standard error, a particular confidence interval or one other way to explain error bars.",
+            "source_ref": {
+              "file": "rubric-pendulum-part1.txt",
+              "sha256": "c4162ee6be8ba6ee82ccedb0d9574c09ad9d3e1eb289c8d39e470bd4cc371b61",
+              "start": 2618,
+              "end": 2974
+            }
+          },
+          {
+            "level_id": "L2",
+            "score": 2,
+            "text": "Claim about length is wrong (no correlation of length to period). Mentions holding other variables constant. Does not refer to the plots with error bars.ORClaim about length is correct (correlates length to period). Does not mention holding other variables constant. Refers to the plots with error bars.",
+            "source_ref": {
+              "file": "rubric-pendulum-part1.txt",
+              "sha256": "c4162ee6be8ba6ee82ccedb0d9574c09ad9d3e1eb289c8d39e470bd4cc371b61",
+              "start": 2975,
+              "end": 3279
+            }
+          },
+          {
+            "level_id": "L3",
+            "score": 3,
+            "text": "Claim about length is correct (correlates length to period). Mentions holding other variables constant or the specific relationship to length. Does not refer to the plots with error bars.ORClaim about length is wrong (no correlation of length to period). Mentions holding other variables constant. Refers to the plots with error bars.",
+            "source_ref": {
+              "file": "rubric-pendulum-part1.txt",
+              "sha256": "c4162ee6be8ba6ee82ccedb0d9574c09ad9d3e1eb289c8d39e470bd4cc371b61",
+              "start": 3280,
+              "end": 3614
+            }
+          },
+          {
+            "level_id": "L4",
+            "score": 4,
+            "text": "Claim about length is correct (correlates length to period).Refers to plot with error bars.Does not mention holding other variables constant or the specific relationship to length.",
+            "source_ref": {
+              "file": "rubric-pendulum-part1.txt",
+              "sha256": "c4162ee6be8ba6ee82ccedb0d9574c09ad9d3e1eb289c8d39e470bd4cc371b61",
+              "start": 3615,
+              "end": 3795
+            }
+          },
+          {
+            "level_id": "L5",
+            "score": 5,
+            "text": "A discussion is included with adequate reasoning or justification for how the evidence (graphed data) supports the claim (correlates with length, linear with square root of length or power law relationship).  Mentions holding other variables constant. Error bars, their size, and the equivalency criterion are discussed with respect to how the length affects the period.",
+            "source_ref": {
+              "file": "rubric-pendulum-part1.txt",
+              "sha256": "c4162ee6be8ba6ee82ccedb0d9574c09ad9d3e1eb289c8d39e470bd4cc371b61",
+              "start": 3796,
+              "end": 4166
+            }
+          }
+        ]
+      },
+      "strategy_source_ref": {
+        "file": "rubric-pendulum-part1.txt",
+        "start": 2618,
+        "end": 4166
+      }
+    },
+    {
+      "rubric_item_id": "R4",
+      "scorable": true,
+      "scoring_strategy": {
+        "type": "levels",
+        "min": 1,
+        "max": 5,
+        "step": 1,
+        "levels": [
+          {
+            "level_id": "L1",
+            "score": 1,
+            "text": "Claim about angle of release is wrong (correlates angle of release to period). Does not mention holding other variables constant. Does not refer to the plots with error bars.Note: Error bar discussion could also have a correct explanation of standard deviation of uncertainty, one standard error, a particular confidence interval or one other way to explain error bars.",
+            "source_ref": {
+              "file": "rubric-pendulum-part2.txt",
+              "sha256": "86130ee49f44b0194154bf6d75518d72a4fef5d251992ede720333019d43c51e",
+              "start": 241,
+              "end": 610
+            }
+          },
+          {
+            "level_id": "L2",
+            "score": 2,
+            "text": "Claim about angle of release is wrong (correlates angle of release to period). Mentions holding other variables constant. Does not refer to the plots with error bars.ORClaim about angle of release is correct (no correlation of angle of release to period). Does not mention holding other variables constant. Refers to the plots with error bars.",
+            "source_ref": {
+              "file": "rubric-pendulum-part2.txt",
+              "sha256": "86130ee49f44b0194154bf6d75518d72a4fef5d251992ede720333019d43c51e",
+              "start": 611,
+              "end": 954
+            }
+          },
+          {
+            "level_id": "L3",
+            "score": 3,
+            "text": "Claim about angle of release is correct (no correlation of angle of release to period). Mentions holding other variables constant. Does not refer to the plots with error bars.ORClaim about angle of release is wrong (correlates angle of release to period). Mentions holding other variables constant. Refers to the plots with error bars.",
+            "source_ref": {
+              "file": "rubric-pendulum-part2.txt",
+              "sha256": "86130ee49f44b0194154bf6d75518d72a4fef5d251992ede720333019d43c51e",
+              "start": 955,
+              "end": 1290
+            }
+          },
+          {
+            "level_id": "L4",
+            "score": 4,
+            "text": "Claim about angle of release is correct (no correlation of angle of release to period). Does not mention holding other variables constant. Refers to the plots with error bars.",
+            "source_ref": {
+              "file": "rubric-pendulum-part2.txt",
+              "sha256": "86130ee49f44b0194154bf6d75518d72a4fef5d251992ede720333019d43c51e",
+              "start": 1291,
+              "end": 1466
+            }
+          },
+          {
+            "level_id": "L5",
+            "score": 5,
+            "text": "A discussion is included with adequate reasoning or justification for how the evidence (graphed data) supports the claim (no correlation of angle of release to period).  Mentions holding other variables constant. Error bars, their size, and the equivalency criterion are discussed with respect to how the angle of release affects the period.",
+            "source_ref": {
+              "file": "rubric-pendulum-part2.txt",
+              "sha256": "86130ee49f44b0194154bf6d75518d72a4fef5d251992ede720333019d43c51e",
+              "start": 1467,
+              "end": 1808
+            }
+          }
+        ]
+      },
+      "strategy_source_ref": {
+        "file": "rubric-pendulum-part2.txt",
+        "start": 241,
+        "end": 1808
+      }
+    },
+    {
+      "rubric_item_id": "R5",
+      "scorable": true,
+      "scoring_strategy": {
+        "type": "points",
+        "min": 0,
+        "max": 5,
+        "step": 1,
+        "criteria": [
+          {
+            "text": "Use correct reference diagram to fit the mathematical model, give correct formula (t T = 2 √L). (1 point)",
+            "points": 1
+          },
+          {
+            "text": "Provide explanation with respect to size of the constant and the exponent. (1 point)",
+            "points": 1
+          },
+          {
+            "text": "Gives the correct theoretical equation (T = 2 π sqr{L/g}). It could also be things like this: T = 2.0061(s/√m)L(0.5).  (1 point)",
+            "points": 1
+          },
+          {
+            "text": "Results from curve fitting are included in the discussion; for example, the computing the R-value is an attempt of curve fitting. (1 point)",
+            "points": 1
+          },
+          {
+            "text": "Discuss how the mathematical model produced in lab supports the theoretical model is complete and accurate.  (1 point)",
+            "points": 1
+          }
+        ]
+      },
+      "strategy_source_ref": {
+        "file": "rubric-pendulum-part2.txt",
+        "start": 2013,
+        "end": 2604
+      }
+    },
+    {
+      "rubric_item_id": "R6",
+      "scorable": true,
+      "scoring_strategy": {
+        "type": "points",
+        "min": 0,
+        "max": 5,
+        "step": 1,
+        "criteria": [
+          {
+            "text": "Discusses at least 1 random error. (1 point)",
+            "points": 1
+          },
+          {
+            "text": "Discusses at least 1 way to reduce 1. (1 point)",
+            "points": 1
+          },
+          {
+            "text": "Discusses at least 1 systematic error. (1 point)",
+            "points": 1
+          },
+          {
+            "text": "Discusses at least 1 way to reduce systematic error. (1 point)",
+            "points": 1
+          },
+          {
+            "text": "Includes one or more additional random or systematic errors. (1 point)",
+            "points": 1
+          }
+        ]
+      },
+      "strategy_source_ref": {
+        "file": "rubric-pendulum-part2.txt",
+        "start": 2739,
+        "end": 3030
+      }
+    },
+    {
+      "rubric_item_id": "R7",
+      "scorable": true,
+      "scoring_strategy": {
+        "type": "levels",
+        "min": 1,
+        "max": 5,
+        "step": 1,
+        "levels": [
+          {
+            "level_id": "L1",
+            "score": 1,
+            "text": "Mentions incorrect constraints only.",
+            "source_ref": {
+              "file": "rubric-pendulum-part2.txt",
+              "sha256": "86130ee49f44b0194154bf6d75518d72a4fef5d251992ede720333019d43c51e",
+              "start": 3158,
+              "end": 3194
+            }
+          },
+          {
+            "level_id": "L2",
+            "score": 2,
+            "text": "Does not mention one of the constraints of length, mass, and time. Possibly mentions other constraints, like time limitations or poor equipment for the experiment.",
+            "source_ref": {
+              "file": "rubric-pendulum-part2.txt",
+              "sha256": "86130ee49f44b0194154bf6d75518d72a4fef5d251992ede720333019d43c51e",
+              "start": 3195,
+              "end": 3358
+            }
+          },
+          {
+            "level_id": "L3",
+            "score": 3,
+            "text": "Mentions one of the constraints of length, mass, and time.Possibly mentions other constraints, like time limitations or poor equipment for the experiment.",
+            "source_ref": {
+              "file": "rubric-pendulum-part2.txt",
+              "sha256": "86130ee49f44b0194154bf6d75518d72a4fef5d251992ede720333019d43c51e",
+              "start": 3359,
+              "end": 3513
+            }
+          },
+          {
+            "level_id": "L4",
+            "score": 4,
+            "text": "Mentions exactly two of the constraints of length, mass, and time. Possibly mentions other constraints, like time limitations or poor equipment for the experiment.",
+            "source_ref": {
+              "file": "rubric-pendulum-part2.txt",
+              "sha256": "86130ee49f44b0194154bf6d75518d72a4fef5d251992ede720333019d43c51e",
+              "start": 3514,
+              "end": 3677
+            }
+          },
+          {
+            "level_id": "L5",
+            "score": 5,
+            "text": "Mentions all three constraints: length is measured only up to a certain amount; mass is measured only up to a certain amount; time limitations on experiments. These can lead to not enough granularity in mass or length measurements.",
+            "source_ref": {
+              "file": "rubric-pendulum-part2.txt",
+              "sha256": "86130ee49f44b0194154bf6d75518d72a4fef5d251992ede720333019d43c51e",
+              "start": 3678,
+              "end": 3909
+            }
+          }
+        ]
+      },
+      "strategy_source_ref": {
+        "file": "rubric-pendulum-part2.txt",
+        "start": 3158,
+        "end": 3909
+      }
+    }
+  ]
+}

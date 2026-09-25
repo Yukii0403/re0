@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AutoGrader · 实时评分（上传报告 → 完整流程）</title>
+<style>
+:root{--bg:#f7f7f5;--card:#fff;--line:#e3e3df;--ink:#1d1d1b;--dim:#6b6b66;--acc:#1f4e79;--warn:#b45309;--ok:#166534}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.7 -apple-system,"Segoe UI","PingFang SC",system-ui,sans-serif}
+header{background:#fff;border-bottom:1px solid var(--line);padding:20px 24px}
+header h1{margin:0 0 6px;font-size:19px}
+header .sub{color:var(--dim);font-size:13.5px}
+main{max-width:960px;margin:0 auto;padding:20px 24px 80px}
+.notice{background:#fff8e6;border:1px solid #f0e0b8;color:#7a5a12;border-radius:10px;padding:11px 14px;font-size:13.5px;margin:14px 0}
+.card{background:var(--card);border:1px solid var(--line);border-radius:11px;padding:16px 18px;margin:12px 0}
+.card h2{margin:0 0 10px;font-size:15px;color:var(--acc)}
+.drop{border:2px dashed #cfcfc8;border-radius:10px;padding:26px 18px;text-align:center;color:var(--dim);cursor:pointer;background:#fbfbf9}
+.drop.over{border-color:var(--acc);background:#f0f6fc;color:var(--acc)}
+.drop b{color:var(--ink)}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:10px}
+button{font:inherit;padding:8px 16px;border:1px solid var(--line);border-radius:8px;background:#fff;cursor:pointer}
+button:hover{background:#f2f2ee}
+button.pri{background:var(--acc);border-color:var(--acc);color:#fff}
+button.pri:hover{background:#173e60}
+button:disabled{opacity:.5;cursor:not-allowed}
+select,input[type=text]{font:inherit;padding:6px 10px;border:1px solid var(--line);border-radius:8px;background:#fff}
+.chip{display:inline-block;border:1px solid var(--line);border-radius:999px;padding:2px 9px;font-size:11.5px;color:var(--dim);margin-right:6px;background:#fafaf8}
+.chip.p{background:#eef6ff;border-color:#cfe3f7;color:#1f4e79}
+.chip.g{background:#eefaf0;border-color:#c7ecd2;color:var(--ok)}
+.chip.w{background:#fff4e5;border-color:#f3d9ae;color:#8a5a09}
+.steps{margin:0;padding:0;list-style:none}
+.steps li{padding:7px 0;border-bottom:1px dashed var(--line);font-size:14px}
+.steps li:last-child{border-bottom:none}
+.dot{display:inline-block;width:9px;height:9px;border-radius:50%;background:#d5d5cf;margin-right:8px;vertical-align:middle}
+.dot.run{background:#f59e0b;animation:pulse 1.2s infinite}
+.dot.done{background:var(--ok)}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+.mono{font:12.5px/1.5 ui-monospace,Consolas,monospace;background:#f4f4f1;border:1px solid var(--line);border-radius:8px;padding:8px 10px;white-space:pre-wrap;max-height:180px;overflow:auto;color:#3a3a36}
+iframe{width:100%;height:78vh;border:1px solid var(--line);border-radius:10px;background:#fff}
+.tiny{color:var(--dim);font-size:12.5px}
+.err{background:#fff5f0;border:1px solid #f0c9b8;color:#8a3a12;border-radius:10px;padding:11px 14px;font-size:13.5px}
+a{color:var(--acc)}
+</style>
+</head>
+<body>
+<header>
+  <h1>AutoGrader · 实时评分</h1>
+  <div class="sub">上传一份全新报告 → 跑完整评测链（解析 → 证据 → 机械验证 → 条目评估）→ 教师视图与给分</div>
+</header>
+<main>
+  <div class="notice">
+    ★ <b>这是实时分析</b>（与"预置案例演示站"不同）：报告会上传到服务端并**真实调用模型**跑完整流程。
+    模型密钥<b>只存在于服务端环境变量</b>，不会进入本页面、也不会随响应返回。
+    <br>★ <b>隐私</b>：上传的原件与分析产物<b>不做匿名公开</b> —— 只有提交本次分析的浏览器（持有 job token）能访问；
+    产物在服务端有 TTL，到期不可取。教师给分的导出<b>在浏览器本地完成</b>，不回传、不在服务端落盘。
+    <span id="quota" class="tiny"></span>
+    <br>★ 实时任务失败或额度用尽时，可用<b>预置案例</b>体验同一套教师视图：<a href="/" target="_blank" rel="noopener">打开静态演示站</a>。
+  </div>
+
+  <div class="card">
+    <h2>① 选择报告</h2>
+    <div class="drop" id="drop">
+      <div><b>把 PDF / TXT 拖到这里</b>，或点击选择文件</div>
+      <div class="tiny" id="hint">支持 .pdf / .txt，单个文件 ≤ 10 MB（PDF 会做页面渲染，便于"查看原文"跳页）</div>
+      <input type="file" id="file" accept=".pdf,.txt" style="display:none">
+    </div>
+    <div class="row">
+      <span class="tiny">或使用预置案例：</span>
+      <select id="preset"><option value="">（不使用）</option></select>
+      <span class="tiny" id="picked"></span>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>② 选择评分标准（rubric）</h2>
+    <div class="row">
+      <select id="rubric"></select>
+      <span class="tiny" id="rubricInfo"></span>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>③ 开始分析</h2>
+    <div class="row">
+      <button class="pri" id="go">开始分析</button>
+      <span class="tiny" id="status">尚未开始</span>
+    </div>
+    <div id="progress" style="display:none;margin-top:12px">
+      <ul class="steps" id="steps"></ul>
+      <div class="row"><span class="tiny" id="elapsed"></span></div>
+      <div id="logbox" style="display:none;margin-top:8px"><div class="mono" id="log"></div></div>
+    </div>
+    <div id="error" style="display:none;margin-top:12px"></div>
+    <div id="extraTip" class="tiny" style="display:none;margin-top:8px"></div>
+  </div>
+
+  <div class="card" id="resultCard" style="display:none">
+    <h2>④ 教师视图</h2>
+    <div class="row">
+      <a id="openNew" target="_blank" rel="noopener"><button class="pri">在新标签页打开</button></a>
+      <span class="tiny">整篇观察 → 关键缺项/论述不足 → 逐条 rubric（确认/修改/给分）→ 评语草稿与导出</span>
+    </div>
+    <div style="margin-top:10px"><iframe id="view" title="教师视图"></iframe></div>
+  </div>
+</main>
+<script src="app.js"></script>
+</body>
+</html>

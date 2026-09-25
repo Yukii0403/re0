@@ -1,0 +1,29 @@
+# Render 一键部署配置（把实时分析站放上公网）
+#
+# 用法：
+#   1) 把仓库推到 GitHub / Gitee
+#   2) Render → New → Blueprint → 选该仓库（会自动读本文件）
+#   3) 在 Render 的 Environment 里填 LLM_BASE_URL / LLM_API_KEY / LLM_MODEL
+#      ★ 密钥只填在平台的环境变量里，不要写进仓库
+#
+# 注意：Render 免费档实例会在闲置后休眠，首次访问需要等待冷启动；
+#       实时分析本身要跑数分钟（PDF 解析 + 4 层评测），请留足超时。
+
+services:
+  - type: web
+    name: autograder
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    plan: free
+    healthCheckPath: /api/cases
+    envVars:
+      - key: LLM_BASE_URL
+        sync: false          # 平台里填，不写死
+      - key: LLM_API_KEY
+        sync: false          # ★ 密钥：只在平台环境变量
+      - key: LLM_MODEL
+        sync: false
+      - key: REALTIME_QUOTA
+        value: "6"           # 实时分析配额（防止密钥被刷）
+      - key: REALTIME_MAX_UPLOAD_MB
+        value: "10"

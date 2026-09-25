@@ -1,0 +1,465 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://autograder.local/schemas/verification-checks.schema.json",
+  "title": "VerificationChecks",
+  "description": "L3 输出：对 L2 候选证据的有限、可复现、有来源绑定的验证。★ 不评分。schema 封闭 + 无任何分数字段是「不评分」的主要机械保证：字段表里根本没有 score / point / grade。算子与容差都是枚举，因此验证是「有限」的；每个操作数的值都由系统从原文解析并带 source_ref + offset，因此是「有来源绑定」的。★ 产物里**不存在任何自由措辞字段** —— 展示句由程序从 reason_codes + basis 生成（模板只有一份定义），所以「不能写成学生算错了」是结构性保证，而不是一句约定。★ fail 必须同时满足 basis.preconditions 的四项，缺一即降级为 unverified。",
+  "type": "object",
+  "required": ["authority", "doc", "rubric", "evidence", "checks", "diagnostics"],
+  "additionalProperties": false,
+  "$defs": {
+    "offset": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": { "start": { "type": "integer", "minimum": 0 }, "end": { "type": "integer", "minimum": 0 } }
+    },
+    "sourceRef": { "type": "object", "additionalProperties": true },
+    "cell": {
+      "type": "object",
+      "description": "键值查询解析出来的单元格：原始内容 + 它在正文里的区间",
+      "required": ["cell_id", "text", "offset"],
+      "additionalProperties": false,
+      "properties": {
+        "cell_id": { "type": "string", "pattern": "^t[0-9]{4}:r[0-9]+:c[0-9]+$" },
+        "text": { "type": "string" },
+        "offset": { "$ref": "#/$defs/offset" }
+      }
+    },
+    "tableQuery": {
+      "type": "object",
+      "description": "★ 模型提交的键值查询 —— 必须带表格身份：同一份报告里两张表都可能有 baseline 和「准确率」。这三个字符串属于 `model_supplied`，只经过「必须在已解析的列头/行标签里逐字命中」这一道校验",
+      "required": ["table_id", "row_label", "column"],
+      "additionalProperties": false,
+      "properties": {
+        "table_id": { "type": "string" },
+        "row_label": { "type": "string" },
+        "column": { "type": "string" }
+      }
+    },
+    "structureSource": {
+      "type": "object",
+      "description": "★ 表格结构本身的来源 —— L1 规则解析（可回溯、可复现），与模型给的查询字符串**确定性不同**",
+      "additionalProperties": false,
+      "properties": {
+        "origin": { "type": "string", "const": "l1_rule_parse" },
+        "cell_split": { "type": ["string", "null"], "enum": ["pdf_geometry", "docx_cell", "text_wide_space", "mixed", null] },
+        "caption_entry": { "type": ["string", "null"] },
+        "entry_range": { "type": ["string", "null"] }
+      }
+    },
+    "unitSource": {
+      "type": "object",
+      "description": "量纲来源。表格单元格里是裸数字，量纲只能从**声明量纲的那一处**推出来 —— 因此它本身也是一个「来自材料某处」的事实，必须带 quote + offset。★ 两条通道的形状略有不同：span 通道是 {quote, offset, dim, via, marker}；表格通道另带 from（列头 / 行标签 / 整表唯一 / 表注）与 applies_to（作用域）。表格通道的全部判定**由规则解析，模型没有表态权**。",
+      "required": ["quote", "offset", "dim", "via", "marker"],
+      "properties": {
+        "quote": { "type": "string" },
+        "offset": { "$ref": "#/$defs/offset" },
+        "dim": { "type": "string" },
+        "via": { "type": "string", "enum": ["unit_marker", "keyword"] },
+        "marker": { "type": "string" },
+        "from": {
+          "type": "string", "enum": ["column_header", "row_label", "table", "caption"],
+          "description": "这份量纲是在哪里声明的（表格通道）。caption = 表注（表外，靠位置邻接判定，所以是最后一级依据）"
+        },
+        "applies_to": {
+          "type": "string", "enum": ["column", "row", "table"],
+          "description": "作用域：列头 → 整列；行标签 → 整行；整表唯一量纲 / 表注 → 整表"
+        },
+        "scale_from": {
+          "type": ["object", "null"], "additionalProperties": true,
+          "description": "★ 声明**量纲**的那一处与声明**刻度**的那一处不是同一处时记这里（如同一张表：表注判 duration，而 (ms) 写在「Average Time (ms)」行标签里）。不记就等于把刻度丢了 —— 同一张表会混出两种基准值（差 1000 倍）"
+        }
+      }
+    },
+    "provenance": {
+      "type": "object",
+      "description": "★ 逐字段标注确定性等级：查询字符串来自模型；表格结构 / 列边界 / 单位来自可回溯的解析。**不把模型给的结构化字段升级成确定事实**",
+      "additionalProperties": false,
+      "properties": {
+        "query": { "type": "string", "const": "model_supplied" },
+        "table_structure": { "type": "string", "const": "l1_rule_parse" },
+        "cell_split": { "type": ["string", "null"] },
+        "unit": {
+          "type": "string",
+          "enum": ["column_header", "row_label", "caption", "table"],
+          "description": "量纲取自哪一处。★ 优先级：列头（最贴近「这一列量的是什么」）> 行标签（真实表里单位常写在 Average Time (ms) 这类行里）> 整表唯一量纲（单位只写了一次）> 表注（表外，靠位置邻接判定，故为最后一级）。四处都是 L1 逐字解析的文本，来源都可回溯 —— **全部由规则解析，模型没有表态权**"
+        }
+      }
+    },
+    "operand": {
+      "description": "已解析的操作数。值由系统从材料解析，模型只负责「指哪里」。两条通道：span 内定位，或表格键值查询。selection ≠ unambiguous 时该 check 只能得 unverified。",
+      "allOf": [
+        {
+          "type": "object",
+          "required": ["ok", "selection", "reasons"],
+          "additionalProperties": false,
+          "properties": {
+            "ok": { "type": "boolean" },
+            "selection": { "type": "string", "enum": ["unambiguous", "ambiguous", "not_found"] },
+            "span_structured": { "type": ["boolean", "null"], "description": "false = 该 span 跨多行且是多行数值块，不得据此产出 pass/fail" },
+            "raw": { "type": ["string", "null"] },
+            "value": { "type": ["number", "null"] },
+            "unit": { "type": ["string", "null"] },
+            "dim": { "type": ["string", "null"], "description": "★ unknown（未声明，**不是**无量纲）/ ratio / duration / bytes。要判出量纲必须有可回溯的依据" },
+            "base": { "type": ["string", "null"] },
+            "base_value": { "type": ["number", "null"] },
+            "dim_source": { "$ref": "#/$defs/unitSource" },
+            "dim_source_status": {
+              "type": ["string", "null"],
+              "enum": ["inline", "cited", "undeclared", null],
+              "description": "★★ 模型对「这个数的量纲从哪来」的**表态**（数值 span 操作数必填）。inline=值自带单位标记；cited=另给 dim_evidence 指向原文；undeclared=明确表态找不到来源。null = 该通道没有模型表态这一环节（表格通道的单位全由规则解析；文本操作数无量纲可言）。★ 系统拿原文核对表态并可能证伪 —— 三个错误表态各有自己的原因码，所以**「没表态」与「原文没单位」在数据上就是两种东西**"
+            },
+            "dim_evidence": { "type": ["object", "null"], "additionalProperties": true },
+            "reasons": { "type": "array", "items": { "type": "string" }, "description": "该操作数自身的失败码（会被汇总进 check 级 reason_codes）" },
+
+            "ref": {
+              "type": ["object", "null"], "additionalProperties": false,
+              "properties": { "bundle_id": { "type": "string" }, "span_index": { "type": "integer", "minimum": 0 } }
+            },
+            "offset": { "type": ["object", "null"], "additionalProperties": true },
+            "span_offset": { "type": ["object", "null"], "additionalProperties": true },
+            "source_ref": { "type": ["object", "null"], "additionalProperties": true },
+            "quote": { "type": ["string", "null"] },
+            "label": { "type": ["string", "null"] },
+            "label_offset": { "type": ["object", "null"], "additionalProperties": true },
+            "label_occurrences": { "type": ["integer", "null"] },
+            "value_anchor": { "type": ["string", "null"], "enum": ["inside_label", "after_label", "before_label", "table_cell", null] },
+
+            "table_id": { "type": ["string", "null"] },
+            "column_count": { "type": ["integer", "null"] },
+            "query": {
+              "type": ["object", "null"],
+              "description": "★ 模型提交的键值查询，原样回带以便审计。必须带表格身份 —— 同一份报告里两张表都可能有 baseline 和「准确率」",
+              "additionalProperties": false,
+              "properties": {
+                "table_id": { "type": ["string", "null"] },
+                "row_label": { "type": ["string", "null"] },
+                "column": { "type": ["string", "null"] }
+              }
+            },
+            "query_source": { "type": ["string", "null"], "enum": ["model_supplied", null] },
+            "structure_source": { "type": ["object", "null"], "additionalProperties": true },
+            "row": { "type": ["object", "null"], "additionalProperties": true },
+            "column": { "type": ["object", "null"], "additionalProperties": true },
+            "cell": { "type": ["object", "null"], "additionalProperties": true },
+            "unit_source": { "$ref": "#/$defs/unitSource" },
+            "provenance": { "type": ["object", "null"], "additionalProperties": true },
+            "columns": { "type": ["array", "null"], "items": { "type": "string" } },
+            "row_labels": { "type": ["array", "null"], "items": { "type": "string" } }
+          }
+        },
+        {
+          "if": { "type": "object", "required": ["query"] },
+          "then": { "type": "object", "required": ["table_id", "query", "query_source"] },
+          "else": { "type": "object", "required": ["quote"] }
+        }
+      ]
+    }
+  },
+  "properties": {
+
+    "authority": {
+      "type": "object",
+      "description": "权威声明。任何一层不得改写本块。L3 只做机械验证，不产生任何评分。",
+      "required": ["scoring_authority", "rubric_sha256", "layer_produces_score", "layer_version"],
+      "additionalProperties": false,
+      "properties": {
+        "scoring_authority": { "type": "string", "const": "rubric" },
+        "rubric_sha256": { "type": "string" },
+        "layer_produces_score": { "type": "boolean", "const": false, "description": "L3 不评分" },
+        "layer_version": {
+          "type": "string", "const": "v0.2",
+          "description": "★ 本产物的 L3 契约版本（代码里的 L3_VERSION，回归有断言钉住两边一致）。下游据此知道消费的是哪一版 —— 没有这个字段的话，'冻结版本'只能靠读代码猜。v0.1 产物没有它，下游按'未知版本'处理。"
+        },
+        "notes": { "type": "string" }
+      }
+    },
+
+    "doc": {
+      "type": "object",
+      "required": ["name", "sha256"],
+      "additionalProperties": false,
+      "properties": {
+        "name": { "type": "string" },
+        "sha256": { "type": "string" },
+        "text_file": { "type": "string" },
+        "index_file": { "type": "string" }
+      }
+    },
+
+    "rubric": {
+      "type": "object",
+      "description": "只引用 canonical rubric（唯一权威副本）。",
+      "required": ["rubric_id", "sha256", "file"],
+      "additionalProperties": false,
+      "properties": {
+        "rubric_id": { "type": "string" },
+        "sha256": { "type": "string" },
+        "file": { "type": "string" }
+      }
+    },
+
+    "evidence": {
+      "type": "object",
+      "description": "只引用 L2 的 evidence 产物，不复制。",
+      "required": ["file", "sha256"],
+      "additionalProperties": false,
+      "properties": {
+        "file": { "type": "string" },
+        "sha256": { "type": "string" },
+        "plan_id": { "type": ["string", "null"] },
+        "plan_version": { "type": ["integer", "null"] }
+      }
+    },
+
+    "index": {
+      "type": "object",
+      "description": "★ 只引用 L1 的索引产物（表格键值查询的解析依据）。只引用不复制 —— 表格结构在索引里只有一份权威副本。",
+      "required": ["file", "sha256"],
+      "additionalProperties": false,
+      "properties": {
+        "file": { "type": "string" },
+        "sha256": { "type": "string" },
+        "tables": { "type": "integer", "minimum": 0 }
+      }
+    },
+
+    "checks": {
+      "type": "array",
+      "description": "验证项。每条都必须能复算：算子确定、操作数带来源、结果进 trace。",
+      "items": {
+        "type": "object",
+        "required": ["id", "kind", "operator", "scope", "rubric_item_id", "stance", "operands", "reason_codes", "basis"],
+        "additionalProperties": false,
+        "properties": {
+          "id": { "type": "string", "pattern": "^ck[0-9]{4}$" },
+          "scope": {
+            "type": "string", "enum": ["rubric_item", "document"],
+            "description": "★ v0.2 新增（显式作用域）。rubric_item=为某个 rubric 条目做的检查，此时 rubric_item_id 必填且必须真的存在于 canonical rubric；document=真正的文档级检查（编号连续性、全局引用完整性这类），此时 rubric_item_id **必须**为 null。下游（L4）据此归集：rubric_item 按 id 归到条目，document 进 document_checks 且**不自动影响任何分数**。v0.1 产物没有这个字段，下游可自行推导但必须标注是推导来的（`scope_inferred`）——因为 'document' 与 '模型忘了填条目' 在旧产物里分不开。"
+          },
+          "rubric_item_id": { "type": ["string", "null"], "description": "scope=rubric_item 时必填且非空；scope=document 时必须显式为 null（不许用 null 表示'忘了填'）" },
+          "kind": {
+            "type": "string",
+            "enum": ["numeric_recompute", "unit_check", "internal_consistency", "numbering", "cross_reference", "magnitude_sanity"]
+          },
+          "operator": {
+            "type": "string",
+            "enum": ["sum_of", "mean_of", "ratio_of", "percent_of", "difference", "relative_change", "product", "unit_consistent", "range_in", "monotonic", "numbering_continuity", "equals_text", "agree"]
+          },
+          "stance": {
+            "type": "string",
+            "enum": ["pass", "fail", "unverified"],
+            "description": "pass/fail 只在四项前置条件全部满足时才允许产出；unverified = 无法验证"
+          },
+          "rubric_item_id": { "type": ["string", "null"], "description": "只作归属，不产生任何分值映射" },
+          "tool_call_index": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "★ 这条 check 由第几次工具调用产生（从 0 数）。由调用循环写入 —— **id 也是系统分配、模型不能自报**，所以标识与顺序都可回溯。直接构造的示例不带此字段"
+          },
+          "claim": {
+            "type": ["object", "null"],
+            "description": "被验证的原话。与操作数走**同一套**来源验证：必须落在声明的 span 内并逐字命中。ok=false 时整条 check 只能得 unverified。",
+            "additionalProperties": true
+          },
+          "operands": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/operand" } },
+          "reason_codes": {
+            "type": "array",
+            "description": "★ **展示句的唯一输入**。产物里没有自由措辞字段；展示句由程序用 renderStatement(reason_codes, basis) 生成，模板在全项目只有一份定义。第一个码是主因，其余是同时成立的其他原因。pass 时为空数组。",
+            "items": {
+              "type": "string",
+              "enum": [
+                "claim_missing", "claim_not_source_bound",
+                "operand_bundle_not_found", "operand_span_index_out_of_range",
+                "operand_quote_not_in_declared_span", "operand_quote_mismatch",
+                "operand_not_a_complete_numeric_token",
+                "operand_label_not_in_same_span", "operand_quote_not_near_label", "ambiguous_operand_selection",
+                "multiline_span_not_structured", "arity_mismatch",
+                "no_number_in_operand", "multiple_numbers_in_operand", "unparsable_number",
+                "unknown_unit", "unknown_dimension", "dim_evidence_unusable", "incompatible_dimensions",
+                "dim_source_status_missing", "dim_status_inline_without_unit",
+                "dim_status_cited_without_evidence", "dim_status_undeclared_with_source",
+                "division_by_zero", "non_finite_result",
+                "expected_not_source_bound", "ambiguous_expected_selection",
+                "no_source_bound_expected_value", "all_dims_undeclared", "unparsable_numbering",
+                "table_not_found", "table_not_key_query_safe", "column_not_found", "column_ambiguous",
+                "row_label_not_found", "row_label_ambiguous", "cell_missing", "column_unit_undetermined",
+                "fail_precondition_missing",
+                "check_not_upheld"
+              ]
+            }
+          },
+          "basis": {
+            "type": "object",
+            "description": "★ 计算依据。fail 的全部理由必须能从这里复算出来 —— 模板只能约束措辞，不能证明判断正确。",
+            "required": ["preconditions"],
+            "additionalProperties": false,
+            "properties": {
+              "formula": { "type": ["string", "null"], "description": "算子登记的算式，如 a − b" },
+              "values": { "type": ["array", "null"], "items": { "type": "number" }, "description": "归一到基准后的操作数取值" },
+              "expected_origin": { "type": ["string", "null"], "enum": ["source_bound", "rule_constant", null] },
+              "preconditions": {
+                "type": "object",
+                "description": "★ fail 的四项前置条件，缺一即降级。四项全 true 才允许 fail。",
+                "required": ["input_binding", "rule_applicable", "tolerance_policy", "computation_complete"],
+                "additionalProperties": false,
+                "properties": {
+                  "input_binding": { "type": "boolean", "description": "① 输入绑定有效：claim 与全部操作数都逐字绑回材料，且选择无歧义、片段结构化" },
+                  "rule_applicable": { "type": "boolean", "description": "② 检查规则适用：kind 与 operator 在枚举内且互相允许" },
+                  "tolerance_policy": { "type": "boolean", "description": "③ 容差策略存在：由服务端按算子登记，不由模型给" },
+                  "computation_complete": { "type": "boolean", "description": "④ 计算结果完整：computed / expected / delta 三者齐全且为有限数" }
+                }
+              },
+              "preconditions_missing": { "type": "array", "items": { "type": "string" }, "description": "只有降级时才出现：缺了哪几项" }
+            }
+          },
+          "computed": {
+            "type": ["object", "null"],
+            "description": "计算结果。value 一律在**基准刻度**上；算子自己的自然刻度记在 scale 里。",
+            "additionalProperties": false,
+            "properties": {
+              "value": { "type": ["number", "null"] },
+              "dim": { "type": "string" },
+              "scale": { "type": "string" }
+            }
+          },
+          "expected": {
+            "type": ["object", "null"],
+            "description": "期望值：来自材料（origin=source_bound）或由算子自身定义（origin=rule_constant，自洽型检查）。模型不能自己写一个数字当期望。★ 来源信息必须一并保留（offset / source_ref / cell）—— 只有 value 没有出处，等于把最要紧的那一半扔了。",
+            "additionalProperties": false,
+            "properties": {
+              "value": { "type": ["number", "null"] },
+              "dim": { "type": "string" },
+              "origin": { "type": "string", "enum": ["source_bound", "rule_constant"] },
+              "unit": { "type": "string" },
+              "raw": { "type": "string", "description": "从 quote 里解析出来的数字字符串" },
+              "quote": { "type": "string", "description": "被引用的逐字串 —— offset 覆盖的就是它。与 raw 不是一回事：slice(offset) === quote 是全项目唯一那条不变量" },
+              "selection": { "type": "string" },
+              "offset": { "type": ["object", "null"], "additionalProperties": true },
+              "source_ref": { "type": ["object", "null"], "additionalProperties": true },
+              "value_anchor": { "type": ["string", "null"] },
+              "cell": { "type": ["object", "null"], "additionalProperties": true },
+              "dim_source": { "$ref": "#/$defs/unitSource" },
+              "dim_source_status": {
+                "type": ["string", "null"], "enum": ["inline", "cited", "undeclared", null],
+                "description": "期望值自己那一次的量纲来源表态（与操作数同一套规则）"
+              },
+              "rule": { "type": "string", "description": "origin=rule_constant 时说明期望是怎么定义的" }
+            }
+          },
+          "delta": {
+            "type": ["object", "null"],
+            "additionalProperties": false,
+            "properties": {
+              "abs": { "type": ["number", "null"] },
+              "tolerance": { "type": ["object", "null"], "additionalProperties": true }
+            }
+          },
+          "tolerance": { "type": ["string", "null"], "enum": ["exact", "abs_1e_3", "abs_1e_2", "abs_0_5", "rel_1pct", "rel_5pct", null] },
+          "warnings": { "type": "array", "items": { "type": "string" } }
+        },
+        "allOf": [
+          {
+            "if": { "type": "object", "required": ["scope"], "properties": { "scope": { "const": "rubric_item" } } },
+            "then": { "type": "object", "properties": { "rubric_item_id": { "type": "string", "minLength": 1 } } },
+            "else": { "type": "object", "properties": { "rubric_item_id": { "type": "null" } } }
+          }
+        ]
+      }
+    },
+
+    "diagnostics": {
+      "type": "object",
+      "description": "★ 只作诊断。pass / fail 的计数**不得**映射为任何分数。",
+      "required": ["diagnostic_only", "counts"],
+      "additionalProperties": false,
+      "properties": {
+        "diagnostic_only": { "type": "boolean", "const": true },
+        "notice": { "type": "string" },
+        "counts": {
+          "type": "object",
+          "required": ["pass", "fail", "unverified"],
+          "additionalProperties": false,
+          "properties": {
+            "pass": { "type": "integer", "minimum": 0 },
+            "fail": { "type": "integer", "minimum": 0 },
+            "unverified": { "type": "integer", "minimum": 0 }
+          }
+        },
+        "by_kind": { "type": "object", "additionalProperties": { "type": "integer", "minimum": 0 } },
+        "unverified_reasons": {
+          "type": "array",
+          "description": "把降级原因归类统计 —— 发现「工具/选择机制哪里不稳」的入口",
+          "items": {
+            "type": "object",
+            "required": ["reason", "count"],
+            "additionalProperties": false,
+            "properties": {
+              "reason": { "type": "string" },
+              "count": { "type": "integer", "minimum": 0 }
+            }
+          }
+        },
+        "fail_precondition_status": {
+          "type": "array",
+          "description": "★ 每条 fail 的四项前置条件实测值 —— fail 必须四项全 true",
+          "items": {
+            "type": "object",
+            "required": ["check_id", "all_true"],
+            "additionalProperties": false,
+            "properties": {
+              "check_id": { "type": "string" },
+              "all_true": { "type": "boolean" }
+            }
+          }
+        },
+        "not_scoring": { "type": "string" },
+
+        "tool_calling": {
+          "type": "object",
+          "description": "★ 调用循环的账目。accepted + rejected 必须等于 attempted —— 一次调用要么变成一条 check，要么在拒绝表里出现，**不允许凭空消失**。重复调用只计数、不丢弃（模型的重复行为本身是要看的）。",
+          "required": ["attempted", "accepted", "rejected", "duplicate", "max_calls", "budget_exhausted", "duplicate_calls"],
+          "additionalProperties": false,
+          "properties": {
+            "attempted": { "type": "integer", "minimum": 0 },
+            "accepted": { "type": "integer", "minimum": 0 },
+            "rejected": { "type": "integer", "minimum": 0 },
+            "duplicate": { "type": "integer", "minimum": 0 },
+            "max_calls": { "type": "integer", "minimum": 1, "description": "调用次数上限（机械上限，不是 prompt 里的礼貌请求）" },
+            "budget_exhausted": { "type": "boolean", "description": "是否撞到上限 —— 撞了就意味着这一轮有检查没做，必须可见" },
+            "duplicate_calls": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": ["index", "of_index"],
+                "additionalProperties": false,
+                "properties": {
+                  "index": { "type": "integer", "minimum": 0 },
+                  "of_index": { "type": "integer", "minimum": 0 }
+                }
+              }
+            }
+          }
+        },
+
+        "rejected_calls": {
+          "type": "array",
+          "description": "★ 结构不合格、因而**不能变成一条 check** 的调用。与 reason_codes 的区别：那是「检查做了但得不出结论」，这是「这次调用根本不是一条合法检查」。丢掉不说会掩盖模型错误，硬塞进 checks 会污染产物，所以单开这张可见的拒收表。",
+          "items": {
+            "type": "object",
+            "required": ["index", "tool", "reason_code"],
+            "additionalProperties": false,
+            "properties": {
+              "index": { "type": "integer", "minimum": 0 },
+              "tool": { "type": ["string", "null"] },
+              "reason_code": {
+                "type": "string",
+                "enum": ["unknown_tool", "malformed_arguments_json", "arguments_failed_schema", "unknown_rubric_item", "internal_tool_error", "budget_exhausted"]
+              },
+              "detail": { "type": "string" }
+            }
+          }
+        }
+      }
+    }
+  }
+}

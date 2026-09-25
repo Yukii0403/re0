@@ -1,0 +1,105 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://autograder.local/schemas/canonical-rubric.schema.json",
+  "title": "CanonicalRubric",
+  "description": "内部统一的规范化 rubric。外部输入可以是已结构化表格 / Word / PDF / 自由文本，但内部一律归一成本结构。两条不可动的规则：①text 与 score_raw 必须是原件的逐字片段，带 source_ref 可核对；②层级是派生结构，必须记录判据且可核对。分值一律不做分配、不做改写；解析只在 validation 的算术一致性检查里用，解析结果不写回、不参与评分。",
+  "type": "object",
+  "required": ["rubric_id", "source", "frozen_at", "immutable", "items", "validation"],
+  "additionalProperties": false,
+  "properties": {
+
+    "rubric_id": { "type": "string" },
+    "frozen_at": { "type": "string", "format": "date-time" },
+    "immutable": { "type": "boolean", "const": true, "description": "唯一评分权威，不可变" },
+    "generator": { "type": "string" },
+
+    "source": {
+      "type": "object",
+      "description": "教师上传的原件。四种输入都归一到这里。",
+      "required": ["file", "sha256", "kind", "adapter"],
+      "additionalProperties": false,
+      "properties": {
+        "file": { "type": "string" },
+        "sha256": { "type": "string", "description": "原件字节哈希 —— 冻结凭据，任何一层据此校验『是不是同一份 rubric』" },
+        "kind": {
+          "type": "string",
+          "enum": ["table", "docx", "pdf", "text"],
+          "description": "table=已结构化表格 / docx / pdf / text=普通自由文本"
+        },
+        "adapter": { "type": "string", "description": "实际使用的适配器与版本，如 text-v1" },
+        "chars": { "type": "integer", "description": "抽取出的原件文本长度；table 型为各单元格文本的拼接长度" }
+      }
+    },
+
+    "items": {
+      "type": "array",
+      "description": "扁平存储、靠 parent/children 表达层级。支持任意深度：大评分点 → 子评分点 → ……",
+      "items": {
+        "type": "object",
+        "required": ["id", "parent", "depth", "order", "text"],
+        "additionalProperties": false,
+        "properties": {
+          "id": { "type": "string", "pattern": "^R[0-9]{1,2}(?:\\.[0-9]{1,2})*$", "description": "R1 / R1.1 / R1.1.1" },
+          "parent": { "type": ["string", "null"], "description": "父条目 id；顶层为 null" },
+          "depth": { "type": "integer", "minimum": 0, "description": "0=大评分点，1=子评分点，以此类推" },
+          "order": { "type": "integer", "minimum": 1, "description": "在原件里的出现顺序" },
+          "text": { "type": "string", "description": "原件的逐字片段。不可改写、不可补全、不可规范措辞。" },
+          "score_raw": { "type": ["string", "null"], "description": "原件里的分值原样（如「30 分」）。不做分配、不做改写。" },
+          "source_ref": {
+            "type": "object",
+            "description": "核对凭据：这条 item 的文本取自原件的哪一段",
+            "required": ["file", "sha256"],
+            "additionalProperties": false,
+            "properties": {
+              "file": { "type": "string" },
+              "sha256": { "type": "string" },
+              "page": { "type": ["integer", "null"], "description": "pdf/docx 用" },
+              "row": { "type": ["integer", "null"], "description": "table 型用：原表第几行" },
+              "start": { "type": ["integer", "null"], "description": "抽取文本里的字符起点" },
+              "end": { "type": ["integer", "null"] }
+            }
+          },
+          "derived_by": {
+            "type": "string",
+            "enum": ["table_structure", "docx_style", "numbering", "indent", "font", "llm_structure"],
+            "description": "层级判据：这条 item 的 parent/depth 是根据什么判出来的。宁可写 llm_structure 也不要留空。"
+          },
+          "children": { "type": "array", "items": { "type": "string" } }
+        }
+      }
+    },
+
+    "validation": {
+      "type": "object",
+      "description": "只报告、不修改。任何不一致都交给教师看，绝不自动改 rubric。",
+      "required": ["text_verbatim_ok", "line_coverage"],
+      "additionalProperties": false,
+      "properties": {
+        "text_verbatim_ok": { "type": "boolean", "description": "每条 item.text 都能在原件的抽取文本里逐字切出" },
+        "line_coverage": { "type": "string", "pattern": "^[0-9]+/[0-9]+$", "description": "已归入 item 的行数 / 原件非空行数。允许小于 1，但差额必须全部出现在 unparsed_lines 里 —— 不能静默丢掉任何一行 rubric。" },
+        "unparsed_lines": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "抽出来但没能归入任何 item 的行；必须显式列出，不能静默丢弃"
+        },
+        "score_consistency": {
+          "type": "array",
+          "description": "父条目分值 vs 子条目之和的算术检查。★ 解析只在这里用，解析结果不写回、不参与评分、不做重新分配。",
+          "items": {
+            "type": "object",
+            "required": ["rubric_item_id", "ok"],
+            "additionalProperties": false,
+            "properties": {
+              "rubric_item_id": { "type": "string" },
+              "parent_score": { "type": ["string", "null"], "description": "原件原样" },
+              "children_sum": { "type": ["string", "null"], "description": "由原文分值相加得到，只用于比较" },
+              "ok": { "type": ["boolean", "null"], "description": "null = 原件没给够分值，无法比较" },
+              "note": { "type": "string" }
+            }
+          }
+        },
+        "notes": { "type": "array", "items": { "type": "string" } }
+      }
+    }
+  }
+}

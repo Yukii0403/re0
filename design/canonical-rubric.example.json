@@ -1,0 +1,237 @@
+{
+  "rubric_id": "rb_lab2_v1",
+  "frozen_at": "2026-09-22T22:55:00+08:00",
+  "immutable": true,
+  "generator": "rubric-adapt/text-v1",
+  "source": {
+    "file": "rubric.example.txt",
+    "sha256": "a92d116d289113d6567d08950c3f4b540ea8dc239fbcc99ed9346dc8e2978782",
+    "kind": "text",
+    "adapter": "text-v1",
+    "chars": 177
+  },
+  "items": [
+    {
+      "id": "R1",
+      "parent": null,
+      "depth": 0,
+      "order": 1,
+      "text": "一、实验方案设计（30 分）",
+      "score_raw": "30 分",
+      "source_ref": {
+        "file": "rubric.example.txt",
+        "sha256": "a92d116d289113d6567d08950c3f4b540ea8dc239fbcc99ed9346dc8e2978782",
+        "page": null,
+        "row": null,
+        "start": 9,
+        "end": 23
+      },
+      "derived_by": "numbering",
+      "children": [
+        "R1.1",
+        "R1.2",
+        "R1.3"
+      ]
+    },
+    {
+      "id": "R1.1",
+      "parent": "R1",
+      "depth": 1,
+      "order": 2,
+      "text": "1. 实验目标明确（10 分）",
+      "score_raw": "10 分",
+      "source_ref": {
+        "file": "rubric.example.txt",
+        "sha256": "a92d116d289113d6567d08950c3f4b540ea8dc239fbcc99ed9346dc8e2978782",
+        "page": null,
+        "row": null,
+        "start": 24,
+        "end": 39
+      },
+      "derived_by": "numbering",
+      "children": []
+    },
+    {
+      "id": "R1.2",
+      "parent": "R1",
+      "depth": 1,
+      "order": 3,
+      "text": "2. 变量控制合理（10 分）",
+      "score_raw": "10 分",
+      "source_ref": {
+        "file": "rubric.example.txt",
+        "sha256": "a92d116d289113d6567d08950c3f4b540ea8dc239fbcc99ed9346dc8e2978782",
+        "page": null,
+        "row": null,
+        "start": 40,
+        "end": 55
+      },
+      "derived_by": "numbering",
+      "children": []
+    },
+    {
+      "id": "R1.3",
+      "parent": "R1",
+      "depth": 1,
+      "order": 4,
+      "text": "3. 器材与步骤描述完整（10 分）",
+      "score_raw": "10 分",
+      "source_ref": {
+        "file": "rubric.example.txt",
+        "sha256": "a92d116d289113d6567d08950c3f4b540ea8dc239fbcc99ed9346dc8e2978782",
+        "page": null,
+        "row": null,
+        "start": 56,
+        "end": 74
+      },
+      "derived_by": "numbering",
+      "children": []
+    },
+    {
+      "id": "R2",
+      "parent": null,
+      "depth": 0,
+      "order": 5,
+      "text": "二、实验结果与分析（30 分）",
+      "score_raw": "30 分",
+      "source_ref": {
+        "file": "rubric.example.txt",
+        "sha256": "a92d116d289113d6567d08950c3f4b540ea8dc239fbcc99ed9346dc8e2978782",
+        "page": null,
+        "row": null,
+        "start": 75,
+        "end": 90
+      },
+      "derived_by": "numbering",
+      "children": [
+        "R2.1",
+        "R2.2"
+      ]
+    },
+    {
+      "id": "R2.1",
+      "parent": "R2",
+      "depth": 1,
+      "order": 6,
+      "text": "1. 对实验结果进行充分且合理的分析（20 分）",
+      "score_raw": "20 分",
+      "source_ref": {
+        "file": "rubric.example.txt",
+        "sha256": "a92d116d289113d6567d08950c3f4b540ea8dc239fbcc99ed9346dc8e2978782",
+        "page": null,
+        "row": null,
+        "start": 91,
+        "end": 115
+      },
+      "derived_by": "numbering",
+      "children": []
+    },
+    {
+      "id": "R2.2",
+      "parent": "R2",
+      "depth": 1,
+      "order": 7,
+      "text": "2. 图表规范（10 分）",
+      "score_raw": "10 分",
+      "source_ref": {
+        "file": "rubric.example.txt",
+        "sha256": "a92d116d289113d6567d08950c3f4b540ea8dc239fbcc99ed9346dc8e2978782",
+        "page": null,
+        "row": null,
+        "start": 116,
+        "end": 129
+      },
+      "derived_by": "numbering",
+      "children": []
+    },
+    {
+      "id": "R3",
+      "parent": null,
+      "depth": 0,
+      "order": 8,
+      "text": "三、结论与讨论（40 分）",
+      "score_raw": "40 分",
+      "source_ref": {
+        "file": "rubric.example.txt",
+        "sha256": "a92d116d289113d6567d08950c3f4b540ea8dc239fbcc99ed9346dc8e2978782",
+        "page": null,
+        "row": null,
+        "start": 130,
+        "end": 143
+      },
+      "derived_by": "numbering",
+      "children": [
+        "R3.1",
+        "R3.2"
+      ]
+    },
+    {
+      "id": "R3.1",
+      "parent": "R3",
+      "depth": 1,
+      "order": 9,
+      "text": "1. 结论由数据支撑（15 分）",
+      "score_raw": "15 分",
+      "source_ref": {
+        "file": "rubric.example.txt",
+        "sha256": "a92d116d289113d6567d08950c3f4b540ea8dc239fbcc99ed9346dc8e2978782",
+        "page": null,
+        "row": null,
+        "start": 144,
+        "end": 160
+      },
+      "derived_by": "numbering",
+      "children": []
+    },
+    {
+      "id": "R3.2",
+      "parent": "R3",
+      "depth": 1,
+      "order": 10,
+      "text": "2. 反思与改进方向（15 分）",
+      "score_raw": "15 分",
+      "source_ref": {
+        "file": "rubric.example.txt",
+        "sha256": "a92d116d289113d6567d08950c3f4b540ea8dc239fbcc99ed9346dc8e2978782",
+        "page": null,
+        "row": null,
+        "start": 161,
+        "end": 177
+      },
+      "derived_by": "numbering",
+      "children": []
+    }
+  ],
+  "validation": {
+    "text_verbatim_ok": true,
+    "line_coverage": "10/11",
+    "unparsed_lines": [
+      "实验二 评分标准"
+    ],
+    "score_consistency": [
+      {
+        "rubric_item_id": "R1",
+        "parent_score": "30 分",
+        "children_sum": "30 分",
+        "ok": true
+      },
+      {
+        "rubric_item_id": "R2",
+        "parent_score": "30 分",
+        "children_sum": "30 分",
+        "ok": true
+      },
+      {
+        "rubric_item_id": "R3",
+        "parent_score": "40 分",
+        "children_sum": "30 分",
+        "ok": false,
+        "note": "父项分值与子项之和不一致，交教师核对；系统不自动改正"
+      }
+    ],
+    "notes": [
+      "文本一律由系统从原件逐字切出；结构标注（哪一行归哪个父项）由模型给出，模型不产生任何 rubric 文本",
+      "分值解析只用于本区块的算术一致性检查，解析结果不写回、不参与评分、不做重新分配"
+    ]
+  }
+}

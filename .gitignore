@@ -1,0 +1,76 @@
+# ============================================================================
+# AutoGrader 仓库入库规则
+# 原则：只保留**运行所需的代码、配置、schema 与网页文件**；
+#       运行输出、原始报告、教师工作表、日志、密钥一律不入库。
+# ★ 注意：.gitignore **不支持行内注释** —— 注释必须单独成行，否则整条规则失效。
+# ============================================================================
+
+# ---------- ① 密钥与凭据（绝不入库）----------
+.env
+.env.*
+*.key
+secrets.json
+.npmrc
+
+# ---------- ② 运行输出（可由脚本重新生成）----------
+fixtures/out/
+fixtures/*/out/
+fixtures/**/out*/
+fixtures/*.out.txt
+fixtures/*.index.json
+src/*.txt
+src/*.pid
+src/*.err
+src/*.log
+
+# ---------- ③ 原始报告与测试夹具（体积/版权；可用 _mkfixtures 重新生成）----------
+fixtures/report.pdf
+fixtures/report-2col.pdf
+fixtures/report.html
+fixtures/report-2col.html
+fixtures/report.docx
+fixtures/report*.txt
+
+# ---------- ④ 教师工作表（教师填写的数据，不入库）----------
+design/teacher-scores*.json
+design/*-work.json
+
+# ---------- ⑤ 用户数据：上传件与产物（绝不入库）----------
+fixtures/uploads/
+
+# ---------- ⑥ 本地样本与数据集（体积/版权）----------
+fixtures/real/*.pdf
+fixtures/real/out/
+fixtures/veras/
+fixtures/**/*.pre-warrant.json
+
+# ---------- ⑦ 日志、本地工具与临时文件 ----------
+*.log
+*.err
+tools/
+node_modules/
+src/_p*.py
+src/_mem*.py
+src/_probe*.mjs
+src/_uicheck*.mjs
+fixtures/web/_*.png
+fixtures/**/_shot_*.png
+fixtures/**/_online_*.png
+
+# ---------- ⑧ 系统与编辑器 ----------
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# ============================================================================
+# 保留入库（运行 / 部署所需）
+#   代码      src/**/*.mjs、src/**/*.js（server.mjs / teacherui.app.js / teacherui.export.js 等）
+#   配置      Dockerfile、render.yaml、.dockerignore、.gitignore、README.md
+#   schema    design/*.schema.json
+#   定义      design/canonical-rubric.*.json、design/rubric-assessment-profile.*.json
+#   示例/标注 design/*.example.json、design/rubric*.txt、design/rubric.cs3223-test.ann.json
+#   文档      design/*.md
+#   网页      fixtures/web/**（含 cases/*.html，由 _mksite 生成但入库以保证站点可直接部署）
+#             fixtures/realtime/**
+# ============================================================================

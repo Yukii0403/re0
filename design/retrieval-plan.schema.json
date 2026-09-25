@@ -1,0 +1,106 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://autograder.local/schemas/retrieval-plan.schema.json",
+  "title": "RetrievalPlan",
+  "description": "R 的产物，独立存储。可修订，但必须持久化、版本化、并在同一批评分中固定。★ 不参与评分。与 canonical rubric 强绑定：rubric_sha256 与 rubric 原件哈希不符即失效。每个 facet 用三个正交维度描述：语义形式(form) / 模态(modality) / 检索通道(channels) —— 三者不重叠，各自回答一个不同的问题。",
+  "type": "object",
+  "required": ["plan_id", "version", "batch_id", "pinned", "rubric_sha256", "items"],
+  "additionalProperties": false,
+  "properties": {
+    "plan_id": { "type": "string" },
+    "version": { "type": "integer", "minimum": 1, "description": "整数递增。修订必须升版本" },
+    "batch_id": { "type": "string", "description": "一批 = 同一份 rubric + 同一群学生作业" },
+    "pinned": { "type": "boolean", "description": "批内固定。同批学生作业必须共用同一 plan 版本 —— 这是同批分数可比的前提" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "generator": { "type": "string" },
+    "revision_note": { "type": ["string", "null"] },
+    "rubric_sha256": { "type": "string", "description": "必须等于 canonical rubric 的原件哈希；不相等说明 rubric 换过，该 plan 立即失效" },
+
+    "revision_log": {
+      "type": "array",
+      "description": "追加式修订记录。修订必须留痕，否则『召回变了』说不清是数据变了还是检索器变了。",
+      "items": {
+        "type": "object",
+        "required": ["version", "at"],
+        "additionalProperties": false,
+        "properties": {
+          "version": { "type": "integer", "minimum": 1 },
+          "at": { "type": "string", "format": "date-time" },
+          "by": { "type": ["string", "null"], "description": "改动者。初版只有 R 重跑会改（plan 只读）" },
+          "change": { "type": ["string", "null"] }
+        }
+      }
+    },
+
+    "items": {
+      "type": "array",
+      "description": "覆盖 canonical rubric 的**所有**条目 —— 一条都不能少（漏条目整次拒收）。但**汇总型父项不生成 facet**：它在 canonical rubric 里有子项，单独检索只会产生与子项重复的证据与多余的模型调用。判据是机械的：`children` 非空即汇总，`summary: true`。",
+      "items": {
+        "type": "object",
+        "required": ["rubric_item_id", "facets"],
+        "additionalProperties": false,
+        "properties": {
+          "rubric_item_id": { "type": "string", "pattern": "^R[0-9]{1,2}(?:\\.[0-9]{1,2})*$" },
+          "summary": {
+            "type": "boolean",
+            "description": "★ 汇总型父项。不生成 facet，但仍出现在计划里（覆盖率要看得见它），且可以在它上面记 blind_spots。"
+          },
+          "children": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "子项 id 列表（跳过的依据，可回溯）。"
+          },
+          "facets": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["id", "text", "form", "modality", "channels"],
+              "additionalProperties": false,
+              "properties": {
+                "id": { "type": "string", "pattern": "^F[0-9]{1,3}$" },
+                "text": { "type": "string", "description": "检索面：一个可在原文里查找的材料面" },
+                "form": {
+                  "type": "string",
+                  "enum": ["value", "relation", "narrative", "procedure"],
+                  "description": "维度一 · 语义形式：要找的是一句什么样的话。value=数值/指标 / relation=比较·因果·对应 / narrative=解释·说明·讨论 / procedure=步骤·流程·方法"
+                },
+                "modality": {
+                  "type": "array",
+                  "minItems": 1,
+                  "items": { "type": "string", "enum": ["text", "table", "figure", "formula", "code"] },
+                  "description": "维度二 · 模态：这段材料以什么形态存在。允许并列（同一件事可能写在正文里、也可能只在表里）"
+                },
+                "channels": {
+                  "type": "array",
+                  "minItems": 1,
+                  "items": {
+                    "type": "string",
+                    "enum": [
+                      "rule:numeric", "rule:relation", "rule:numbering", "rule:keyword",
+                      "structure:table", "structure:figure", "structure:formula", "structure:code",
+                      "llm:semantic"
+                    ]
+                  },
+                  "description": "维度三 · 检索通道：跑哪几条网。显式声明而不是由代码隐式推导，便于审计『这条面到底走了哪些通道』"
+                }
+              }
+            }
+          },
+          "blind_spots": {
+            "type": "array",
+            "description": "检索盲点：R 无法把该措辞转成任何可检索的材料面。它是『判断』而非『材料』，例如「充分」「合理」。必须在 R 阶段暴露，不要指望下游覆盖。",
+            "items": {
+              "type": "object",
+              "required": ["text"],
+              "additionalProperties": false,
+              "properties": {
+                "text": { "type": "string" },
+                "reason": { "type": "string" }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

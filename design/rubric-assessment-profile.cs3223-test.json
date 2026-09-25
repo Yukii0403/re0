@@ -1,0 +1,167 @@
+{
+  "profile_id": "rap_cs3223_test_v1",
+  "version": 1,
+  "status": "provisional_test",
+  "notes": "L4 的执行配置，**不是**教师 rubric。points 的 max 逐字来自 rubric 原件（见各条 strategy_source_ref）；min=0 与 step=1 是系统执行策略（比赛版取最小步长），不是教师给的，也不回写 rubric。status=provisional_test 表示用的是测试 rubric，拿到教师真 rubric 后另建正式 profile。",
+  "rubric": {
+    "rubric_id": "rb_cs3223_test",
+    "source_sha256": "71b6761926d4af15a402c5c181e485afbe08d934e01c0af0cb31ae22d5a91a2b"
+  },
+  "items": [
+    {
+      "rubric_item_id": "R1",
+      "scorable": false,
+      "aggregation": {
+        "type": "sum_children",
+        "children": [
+          "R1.1",
+          "R1.2"
+        ]
+      }
+    },
+    {
+      "rubric_item_id": "R1.1",
+      "scorable": true,
+      "scoring_strategy": {
+        "type": "points",
+        "min": 0,
+        "max": 10,
+        "step": 1
+      },
+      "strategy_source_ref": {
+        "file": "rubric.cs3223-test.txt",
+        "start": 32,
+        "end": 54
+      }
+    },
+    {
+      "rubric_item_id": "R1.2",
+      "scorable": true,
+      "scoring_strategy": {
+        "type": "points",
+        "min": 0,
+        "max": 10,
+        "step": 1
+      },
+      "strategy_source_ref": {
+        "file": "rubric.cs3223-test.txt",
+        "start": 55,
+        "end": 76
+      }
+    },
+    {
+      "rubric_item_id": "R2",
+      "scorable": false,
+      "aggregation": {
+        "type": "sum_children",
+        "children": [
+          "R2.1",
+          "R2.2",
+          "R2.3"
+        ]
+      }
+    },
+    {
+      "rubric_item_id": "R2.1",
+      "scorable": true,
+      "scoring_strategy": {
+        "type": "points",
+        "min": 0,
+        "max": 15,
+        "step": 1
+      },
+      "strategy_source_ref": {
+        "file": "rubric.cs3223-test.txt",
+        "start": 92,
+        "end": 115
+      }
+    },
+    {
+      "rubric_item_id": "R2.2",
+      "scorable": true,
+      "scoring_strategy": {
+        "type": "points",
+        "min": 0,
+        "max": 15,
+        "step": 1
+      },
+      "strategy_source_ref": {
+        "file": "rubric.cs3223-test.txt",
+        "start": 116,
+        "end": 137
+      }
+    },
+    {
+      "rubric_item_id": "R2.3",
+      "scorable": true,
+      "scoring_strategy": {
+        "type": "points",
+        "min": 0,
+        "max": 10,
+        "step": 1
+      },
+      "strategy_source_ref": {
+        "file": "rubric.cs3223-test.txt",
+        "start": 138,
+        "end": 151
+      }
+    },
+    {
+      "rubric_item_id": "R3",
+      "scorable": false,
+      "aggregation": {
+        "type": "sum_children",
+        "children": [
+          "R3.1",
+          "R3.2",
+          "R3.3"
+        ]
+      }
+    },
+    {
+      "rubric_item_id": "R3.1",
+      "scorable": true,
+      "scoring_strategy": {
+        "type": "points",
+        "min": 0,
+        "max": 20,
+        "step": 1
+      },
+      "strategy_source_ref": {
+        "file": "rubric.cs3223-test.txt",
+        "start": 166,
+        "end": 190
+      }
+    },
+    {
+      "rubric_item_id": "R3.2",
+      "scorable": true,
+      "scoring_strategy": {
+        "type": "points",
+        "min": 0,
+        "max": 10,
+        "step": 1
+      },
+      "strategy_source_ref": {
+        "file": "rubric.cs3223-test.txt",
+        "start": 191,
+        "end": 207
+      }
+    },
+    {
+      "rubric_item_id": "R3.3",
+      "scorable": true,
+      "scoring_strategy": {
+        "type": "points",
+        "min": 0,
+        "max": 10,
+        "step": 1
+      },
+      "strategy_source_ref": {
+        "file": "rubric.cs3223-test.txt",
+        "start": 208,
+        "end": 224
+      }
+    }
+  ]
+}

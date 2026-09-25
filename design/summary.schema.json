@@ -1,0 +1,171 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://autograder.local/schemas/summary.schema.json",
+  "title": "ReportSummary",
+  "description": "阶段三产物：总结评语。★ 不含任何新分数 —— score_summary / per_item 里的分数是**程序从教师给分回抄**的（教师是唯一给分方）。★ text 只含教师**已确认**（verdict=accurate）内容；未三选/有异议/无法回原文核对的观察一律进 pending_notes，**不向学生发布**。★ release 是发布闸：默认 draft，未经教师批准不得交付学生。source_index 把每条 finding 的原文定位程序回抄进来，教师可据此从评语点回原文。",
+  "type": "object",
+  "required": ["authority", "doc", "rubric", "assessment", "teacher_scores", "score_summary", "per_item", "unconfirmed_items", "criticized_items", "content_unconfirmed_items", "unanchored_findings", "anchor_summary", "source_index", "release", "summary", "diagnostics"],
+  "additionalProperties": false,
+  "properties": {
+    "authority": {
+      "type": "object",
+      "required": ["scoring_authority", "rubric_sha256", "layer_produces_score", "scores_are_teacher_final", "teacher_scores_status", "layer_version"],
+      "additionalProperties": false,
+      "properties": {
+        "scoring_authority": { "type": "string", "const": "rubric" },
+        "rubric_sha256": { "type": "string" },
+        "layer_produces_score": { "type": "boolean", "const": false },
+        "scores_are_teacher_final": { "type": "boolean", "description": "★ 由输入文件的 status 决定：只有 status=teacher_confirmed 才为 true。needs_teacher_input（工作表模板）/ provisional_test（模拟分数）必须为 false —— 不许把「还没人填」或「模拟三选」说成教师已确认" },
+        "teacher_scores_status": { "type": ["string", "null"], "enum": ["needs_teacher_input", "provisional_test", "teacher_confirmed", "retired", null] },
+        "layer_version": { "type": "string" },
+        "notes": { "type": "string" }
+      }
+    },
+    "doc": {
+      "type": "object", "required": ["name", "sha256"], "additionalProperties": false,
+      "properties": {
+        "name": { "type": "string" }, "sha256": { "type": "string" },
+        "text_file": { "type": ["string", "null"] }, "index_file": { "type": ["string", "null"] }
+      }
+    },
+    "rubric": {
+      "type": "object", "required": ["rubric_id", "source_sha256"], "additionalProperties": false,
+      "properties": { "rubric_id": { "type": "string" }, "source_sha256": { "type": "string" }, "file": { "type": ["string", "null"] } }
+    },
+    "assessment": {
+      "type": "object", "required": ["file", "sha256"], "additionalProperties": false,
+      "properties": { "file": { "type": "string" }, "sha256": { "type": "string" }, "layer_version": { "type": ["string", "null"] } }
+    },
+    "teacher_scores": {
+      "type": "object", "required": ["file", "sha256"], "additionalProperties": false,
+      "properties": { "file": { "type": "string" }, "sha256": { "type": "string" }, "status": { "type": ["string", "null"] } }
+    },
+    "score_summary": {
+      "type": "object", "required": ["total", "maximum", "by_item"], "additionalProperties": false,
+      "properties": {
+        "total": { "type": "integer", "minimum": 0, "description": "★ 教师给的最终分之和（程序回抄，不是模型输出）" },
+        "maximum": { "type": "integer", "minimum": 0 },
+        "by_item": {
+          "type": "array",
+          "items": {
+            "type": "object", "required": ["rubric_item_id", "score", "max"], "additionalProperties": false,
+            "properties": { "rubric_item_id": { "type": "string" }, "score": { "type": "integer", "minimum": 0 }, "max": { "type": "integer", "minimum": 0 } }
+          }
+        }
+      }
+    },
+    "per_item": {
+      "type": "array",
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["rubric_item_id", "score", "max", "verdict"],
+        "properties": {
+          "rubric_item_id": { "type": "string" },
+          "score": { "type": "integer", "minimum": 0 },
+          "max": { "type": "integer", "minimum": 0 },
+          "verdict": { "type": ["string", "null"], "enum": ["accurate", "inaccurate", "partially_accurate", null] },
+          "verdict_note": { "type": ["string", "null"] },
+          "system_verdict": { "type": ["object", "null"], "additionalProperties": true },
+          "findings_concern": { "type": "integer", "minimum": 0 },
+          "findings_strength": { "type": "integer", "minimum": 0 }
+        }
+      }
+    },
+    "unconfirmed_items": { "type": "array", "items": { "type": "string" }, "description": "★ 教师未三选的条目 —— 未标注 ≠ 准确；由程序算，不是模型自报" },
+    "criticized_items": { "type": "array", "items": { "type": "string" }, "description": "教师认为评价不准确/部分准确的条目 —— 以教师判断为准" },
+    "content_unconfirmed_items": { "type": "array", "items": { "type": "string" }, "description": "★ 内容未逐条确认的条目（= verdict 非 accurate 的全部）—— 其观察只能进 pending_notes，不得进 text" },
+    "unanchored_findings": {
+      "type": "array",
+      "description": "★ 既无原文定位、也无 L3 挂钩的观察 —— 无法回原文核对；不得写进 text",
+      "items": {
+        "type": "object", "additionalProperties": false, "required": ["rubric_item_id", "polarity", "kind"],
+        "properties": { "rubric_item_id": { "type": "string" }, "polarity": { "type": "string" }, "kind": { "type": "string" } }
+      }
+    },
+    "anchor_summary": {
+      "type": "object", "additionalProperties": false, "required": ["total", "anchored", "unanchored"],
+      "properties": {
+        "total": { "type": "integer", "minimum": 0 },
+        "anchored": { "type": "integer", "minimum": 0 },
+        "unanchored": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "source_index": {
+      "type": "array",
+      "description": "★ 程序回抄的定位表：每条 finding → 原文 offset/source_ref（或 L3 挂钩）。「L4 有定位」由此变成「教师能从评语点回原文」",
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["rubric_item_id", "polarity", "kind", "note", "derived_by", "anchored"],
+        "properties": {
+          "rubric_item_id": { "type": "string" },
+          "polarity": { "type": "string", "enum": ["strength", "concern", "neutral"] },
+          "kind": { "type": "string", "enum": ["calculation", "reasoning", "completeness", "presentation", "other"] },
+          "severity": { "type": ["string", "null"], "enum": ["major", "minor", null] },
+          "note": { "type": "string" },
+          "derived_by": { "type": "string", "const": "model" },
+          "quote": { "type": ["string", "null"] },
+          "located": {
+            "type": ["object", "null"], "additionalProperties": false, "required": ["offset", "source_ref"],
+            "properties": {
+              "offset": { "type": "object", "required": ["start", "end"], "additionalProperties": false, "properties": { "start": { "type": "integer", "minimum": 0 }, "end": { "type": "integer", "minimum": 0 } } },
+              "source_ref": { "type": "object", "additionalProperties": true }
+            }
+          },
+          "l3": {
+            "type": ["object", "null"], "additionalProperties": false, "required": ["check_id", "stance"],
+            "properties": { "check_id": { "type": "string" }, "stance": { "type": "string", "enum": ["pass", "fail", "unverified"] } }
+          },
+          "anchored": { "type": "boolean" }
+        }
+      }
+    },
+    "release": {
+      "type": "object",
+      "description": "★ 发布闸：默认 draft；只有输入里带显式批准记录（approval.approved_by/approved_at/scope=summary_release）且 blockers 全空，才可能 teacher_approved。",
+      "required": ["status", "blockers", "rule"],
+      "additionalProperties": false,
+      "properties": {
+        "status": { "type": "string", "enum": ["draft", "teacher_approved"] },
+        "approved_by": { "type": ["string", "null"] },
+        "approved_at": { "type": ["string", "null"] },
+        "blockers": {
+          "type": "array", "items": { "type": "string" },
+          "description": "provisional_teacher_scores / no_release_approval / unconfirmed_items:N / disputed_items:N / unanchored_findings:N / over_target_length"
+        },
+        "rule": { "type": "string" }
+      }
+    },
+    "summary": {
+      "type": ["object", "null"],
+      "additionalProperties": false,
+      "required": ["summary_id", "text", "chars", "pending_notes", "pending_chars", "derived_by", "target", "over_target"],
+      "properties": {
+        "summary_id": { "type": "string", "pattern": "^s[0-9]{4}$" },
+        "text": { "type": "string", "maxLength": 6000, "description": "学生可见正文 —— 只含教师已确认的内容" },
+        "chars": { "type": "integer", "minimum": 0, "maximum": 6000 },
+        "pending_notes": { "type": "string", "maxLength": 6000, "description": "★ 不向学生发布：未确认 / 有异议 / 无法回原文核对的观察，供教师确认" },
+        "pending_chars": { "type": "integer", "minimum": 0, "maximum": 6000 },
+        "derived_by": { "type": "string", "const": "model" },
+        "target": { "type": "integer", "minimum": 1 },
+        "over_target": { "type": "boolean" }
+      }
+    },
+    "diagnostics": {
+      "type": "object",
+      "required": ["diagnostic_only", "summary_version", "not_a_score"],
+      "additionalProperties": false,
+      "properties": {
+        "diagnostic_only": { "type": "boolean", "const": true },
+        "summary_version": { "type": "string" },
+        "attempted": { "type": ["integer", "null"] },
+        "accepted": { "type": ["integer", "null"] },
+        "rejected": { "type": ["integer", "null"] },
+        "accounted": { "type": ["boolean", "null"] },
+        "turns": { "type": ["integer", "null"] },
+        "usage": { "type": ["object", "null"], "additionalProperties": true },
+        "notices": { "type": ["string", "null"] },
+        "not_a_score": { "type": "string" }
+      }
+    }
+  }
+}

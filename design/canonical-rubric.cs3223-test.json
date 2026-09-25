@@ -1,0 +1,255 @@
+{
+  "rubric_id": "rb_cs3223_test",
+  "frozen_at": "2026-09-22T22:55:00+08:00",
+  "immutable": true,
+  "generator": "rubric-adapt/text-v1",
+  "source": {
+    "file": "rubric.cs3223-test.txt",
+    "sha256": "71b6761926d4af15a402c5c181e485afbe08d934e01c0af0cb31ae22d5a91a2b",
+    "kind": "text",
+    "adapter": "text-v1",
+    "chars": 224
+  },
+  "items": [
+    {
+      "id": "R1",
+      "parent": null,
+      "depth": 0,
+      "order": 1,
+      "text": "一、实验设置说明（20 分）",
+      "score_raw": "20 分",
+      "source_ref": {
+        "file": "rubric.cs3223-test.txt",
+        "sha256": "71b6761926d4af15a402c5c181e485afbe08d934e01c0af0cb31ae22d5a91a2b",
+        "page": null,
+        "row": null,
+        "start": 17,
+        "end": 31
+      },
+      "derived_by": "numbering",
+      "children": [
+        "R1.1",
+        "R1.2"
+      ]
+    },
+    {
+      "id": "R1.1",
+      "parent": "R1",
+      "depth": 1,
+      "order": 2,
+      "text": "1. 给出所用数据集与各表的结构（10 分）",
+      "score_raw": "10 分",
+      "source_ref": {
+        "file": "rubric.cs3223-test.txt",
+        "sha256": "71b6761926d4af15a402c5c181e485afbe08d934e01c0af0cb31ae22d5a91a2b",
+        "page": null,
+        "row": null,
+        "start": 32,
+        "end": 54
+      },
+      "derived_by": "numbering",
+      "children": []
+    },
+    {
+      "id": "R1.2",
+      "parent": "R1",
+      "depth": 1,
+      "order": 3,
+      "text": "2. 说明所用的索引与查询配置（10 分）",
+      "score_raw": "10 分",
+      "source_ref": {
+        "file": "rubric.cs3223-test.txt",
+        "sha256": "71b6761926d4af15a402c5c181e485afbe08d934e01c0af0cb31ae22d5a91a2b",
+        "page": null,
+        "row": null,
+        "start": 55,
+        "end": 76
+      },
+      "derived_by": "numbering",
+      "children": []
+    },
+    {
+      "id": "R2",
+      "parent": null,
+      "depth": 0,
+      "order": 4,
+      "text": "二、实验结果呈现（40 分）",
+      "score_raw": "40 分",
+      "source_ref": {
+        "file": "rubric.cs3223-test.txt",
+        "sha256": "71b6761926d4af15a402c5c181e485afbe08d934e01c0af0cb31ae22d5a91a2b",
+        "page": null,
+        "row": null,
+        "start": 77,
+        "end": 91
+      },
+      "derived_by": "numbering",
+      "children": [
+        "R2.1",
+        "R2.2",
+        "R2.3"
+      ]
+    },
+    {
+      "id": "R2.1",
+      "parent": "R2",
+      "depth": 1,
+      "order": 5,
+      "text": "1. 给出各查询方案的实际运行时间（15 分）",
+      "score_raw": "15 分",
+      "source_ref": {
+        "file": "rubric.cs3223-test.txt",
+        "sha256": "71b6761926d4af15a402c5c181e485afbe08d934e01c0af0cb31ae22d5a91a2b",
+        "page": null,
+        "row": null,
+        "start": 92,
+        "end": 115
+      },
+      "derived_by": "numbering",
+      "children": []
+    },
+    {
+      "id": "R2.2",
+      "parent": "R2",
+      "depth": 1,
+      "order": 6,
+      "text": "2. 说明索引对查询计划的影响（15 分）",
+      "score_raw": "15 分",
+      "source_ref": {
+        "file": "rubric.cs3223-test.txt",
+        "sha256": "71b6761926d4af15a402c5c181e485afbe08d934e01c0af0cb31ae22d5a91a2b",
+        "page": null,
+        "row": null,
+        "start": 116,
+        "end": 137
+      },
+      "derived_by": "numbering",
+      "children": []
+    },
+    {
+      "id": "R2.3",
+      "parent": "R2",
+      "depth": 1,
+      "order": 7,
+      "text": "3. 图表规范（10 分）",
+      "score_raw": "10 分",
+      "source_ref": {
+        "file": "rubric.cs3223-test.txt",
+        "sha256": "71b6761926d4af15a402c5c181e485afbe08d934e01c0af0cb31ae22d5a91a2b",
+        "page": null,
+        "row": null,
+        "start": 138,
+        "end": 151
+      },
+      "derived_by": "numbering",
+      "children": []
+    },
+    {
+      "id": "R3",
+      "parent": null,
+      "depth": 0,
+      "order": 8,
+      "text": "三、分析与结论（40 分）",
+      "score_raw": "40 分",
+      "source_ref": {
+        "file": "rubric.cs3223-test.txt",
+        "sha256": "71b6761926d4af15a402c5c181e485afbe08d934e01c0af0cb31ae22d5a91a2b",
+        "page": null,
+        "row": null,
+        "start": 152,
+        "end": 165
+      },
+      "derived_by": "numbering",
+      "children": [
+        "R3.1",
+        "R3.2",
+        "R3.3"
+      ]
+    },
+    {
+      "id": "R3.1",
+      "parent": "R3",
+      "depth": 1,
+      "order": 9,
+      "text": "1. 对实验结果进行充分且合理的分析（20 分）",
+      "score_raw": "20 分",
+      "source_ref": {
+        "file": "rubric.cs3223-test.txt",
+        "sha256": "71b6761926d4af15a402c5c181e485afbe08d934e01c0af0cb31ae22d5a91a2b",
+        "page": null,
+        "row": null,
+        "start": 166,
+        "end": 190
+      },
+      "derived_by": "numbering",
+      "children": []
+    },
+    {
+      "id": "R3.2",
+      "parent": "R3",
+      "depth": 1,
+      "order": 10,
+      "text": "2. 结论由数据支撑（10 分）",
+      "score_raw": "10 分",
+      "source_ref": {
+        "file": "rubric.cs3223-test.txt",
+        "sha256": "71b6761926d4af15a402c5c181e485afbe08d934e01c0af0cb31ae22d5a91a2b",
+        "page": null,
+        "row": null,
+        "start": 191,
+        "end": 207
+      },
+      "derived_by": "numbering",
+      "children": []
+    },
+    {
+      "id": "R3.3",
+      "parent": "R3",
+      "depth": 1,
+      "order": 11,
+      "text": "3. 反思与改进方向（10 分）",
+      "score_raw": "10 分",
+      "source_ref": {
+        "file": "rubric.cs3223-test.txt",
+        "sha256": "71b6761926d4af15a402c5c181e485afbe08d934e01c0af0cb31ae22d5a91a2b",
+        "page": null,
+        "row": null,
+        "start": 208,
+        "end": 224
+      },
+      "derived_by": "numbering",
+      "children": []
+    }
+  ],
+  "validation": {
+    "text_verbatim_ok": true,
+    "line_coverage": "11/12",
+    "unparsed_lines": [
+      "CS3223 实验报告 评分标准"
+    ],
+    "score_consistency": [
+      {
+        "rubric_item_id": "R1",
+        "parent_score": "20 分",
+        "children_sum": "20 分",
+        "ok": true
+      },
+      {
+        "rubric_item_id": "R2",
+        "parent_score": "40 分",
+        "children_sum": "40 分",
+        "ok": true
+      },
+      {
+        "rubric_item_id": "R3",
+        "parent_score": "40 分",
+        "children_sum": "40 分",
+        "ok": true
+      }
+    ],
+    "notes": [
+      "文本一律由系统从原件逐字切出；结构标注（哪一行归哪个父项）由模型给出，模型不产生任何 rubric 文本",
+      "分值解析只用于本区块的算术一致性检查，解析结果不写回、不参与评分、不做重新分配"
+    ]
+  }
+}

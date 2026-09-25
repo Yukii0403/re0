@@ -1,0 +1,352 @@
+{
+  "plan_id": "rp_lab2",
+  "version": 2,
+  "batch_id": "b2026-10-lab2",
+  "pinned": true,
+  "generated_at": "2026-09-22T23:20:00+08:00",
+  "generator": "l2-r/0.3.0",
+  "revision_note": "v2 把 facet 的 kind 拆成语义形式 / 模态 / 检索通道三个维度，并补齐父项 facet",
+  "rubric_sha256": "a92d116d289113d6567d08950c3f4b540ea8dc239fbcc99ed9346dc8e2978782",
+  "revision_log": [
+    {
+      "version": 1,
+      "at": "2026-09-22T22:50:00+08:00",
+      "by": "l2-r/0.1.0",
+      "change": "初版（单维度 kind）"
+    },
+    {
+      "version": 2,
+      "at": "2026-09-22T23:20:00+08:00",
+      "by": "l2-r/0.3.0",
+      "change": "kind 拆成 form / modality / channels 三维；覆盖父项"
+    }
+  ],
+  "items": [
+    {
+      "rubric_item_id": "R1",
+      "facets": [
+        {
+          "id": "F1",
+          "text": "方案设计的整体表述",
+          "form": "narrative",
+          "modality": [
+            "text"
+          ],
+          "channels": [
+            "llm:semantic"
+          ]
+        }
+      ],
+      "blind_spots": []
+    },
+    {
+      "rubric_item_id": "R1.1",
+      "facets": [
+        {
+          "id": "F1",
+          "text": "实验目标的陈述",
+          "form": "narrative",
+          "modality": [
+            "text"
+          ],
+          "channels": [
+            "llm:semantic"
+          ]
+        }
+      ],
+      "blind_spots": []
+    },
+    {
+      "rubric_item_id": "R1.2",
+      "facets": [
+        {
+          "id": "F1",
+          "text": "自变量与因变量的说明",
+          "form": "narrative",
+          "modality": [
+            "text"
+          ],
+          "channels": [
+            "llm:semantic"
+          ]
+        },
+        {
+          "id": "F2",
+          "text": "控制变量的列举",
+          "form": "value",
+          "modality": [
+            "text",
+            "table"
+          ],
+          "channels": [
+            "rule:numeric",
+            "llm:semantic"
+          ]
+        }
+      ],
+      "blind_spots": [
+        {
+          "text": "合理",
+          "reason": "判断性措辞，无法转成可检索的材料面"
+        }
+      ]
+    },
+    {
+      "rubric_item_id": "R1.3",
+      "facets": [
+        {
+          "id": "F1",
+          "text": "器材清单",
+          "form": "value",
+          "modality": [
+            "text",
+            "table"
+          ],
+          "channels": [
+            "rule:numbering",
+            "rule:numeric",
+            "llm:semantic"
+          ]
+        },
+        {
+          "id": "F2",
+          "text": "操作步骤描述",
+          "form": "procedure",
+          "modality": [
+            "text"
+          ],
+          "channels": [
+            "rule:numbering",
+            "llm:semantic"
+          ]
+        }
+      ],
+      "blind_spots": []
+    },
+    {
+      "rubric_item_id": "R2",
+      "facets": [
+        {
+          "id": "F1",
+          "text": "结果与分析的整体表述",
+          "form": "narrative",
+          "modality": [
+            "text"
+          ],
+          "channels": [
+            "llm:semantic"
+          ]
+        }
+      ],
+      "blind_spots": []
+    },
+    {
+      "rubric_item_id": "R2.1",
+      "facets": [
+        {
+          "id": "F1",
+          "text": "结果数值",
+          "form": "value",
+          "modality": [
+            "text",
+            "table"
+          ],
+          "channels": [
+            "rule:numeric",
+            "structure:table",
+            "llm:semantic"
+          ]
+        },
+        {
+          "id": "F2",
+          "text": "趋势解释",
+          "form": "narrative",
+          "modality": [
+            "text",
+            "figure"
+          ],
+          "channels": [
+            "structure:figure",
+            "llm:semantic"
+          ]
+        },
+        {
+          "id": "F3",
+          "text": "误差来源",
+          "form": "relation",
+          "modality": [
+            "text"
+          ],
+          "channels": [
+            "rule:relation",
+            "llm:semantic"
+          ]
+        },
+        {
+          "id": "F4",
+          "text": "异常数据",
+          "form": "value",
+          "modality": [
+            "text",
+            "table",
+            "figure"
+          ],
+          "channels": [
+            "rule:numeric",
+            "structure:table",
+            "structure:figure",
+            "llm:semantic"
+          ]
+        },
+        {
+          "id": "F5",
+          "text": "与理论值的比较",
+          "form": "relation",
+          "modality": [
+            "text",
+            "table"
+          ],
+          "channels": [
+            "rule:relation",
+            "structure:table",
+            "llm:semantic"
+          ]
+        },
+        {
+          "id": "F6",
+          "text": "结论与数据的关系",
+          "form": "relation",
+          "modality": [
+            "text"
+          ],
+          "channels": [
+            "rule:relation",
+            "llm:semantic"
+          ]
+        }
+      ],
+      "blind_spots": [
+        {
+          "text": "充分",
+          "reason": "判断性措辞，原文里不存在一段叫「充分」的材料"
+        },
+        {
+          "text": "合理",
+          "reason": "判断性措辞，无法转成可检索的材料面"
+        }
+      ]
+    },
+    {
+      "rubric_item_id": "R2.2",
+      "facets": [
+        {
+          "id": "F1",
+          "text": "图的编号与标题",
+          "form": "narrative",
+          "modality": [
+            "figure",
+            "text"
+          ],
+          "channels": [
+            "rule:numbering",
+            "structure:figure",
+            "llm:semantic"
+          ]
+        },
+        {
+          "id": "F2",
+          "text": "表的编号与标题",
+          "form": "narrative",
+          "modality": [
+            "table",
+            "text"
+          ],
+          "channels": [
+            "rule:numbering",
+            "structure:table",
+            "llm:semantic"
+          ]
+        }
+      ],
+      "blind_spots": []
+    },
+    {
+      "rubric_item_id": "R3",
+      "facets": [
+        {
+          "id": "F1",
+          "text": "结论与讨论的整体表述",
+          "form": "narrative",
+          "modality": [
+            "text"
+          ],
+          "channels": [
+            "llm:semantic"
+          ]
+        }
+      ],
+      "blind_spots": []
+    },
+    {
+      "rubric_item_id": "R3.1",
+      "facets": [
+        {
+          "id": "F1",
+          "text": "由数据得出的结论性表述",
+          "form": "relation",
+          "modality": [
+            "text"
+          ],
+          "channels": [
+            "rule:relation",
+            "llm:semantic"
+          ]
+        },
+        {
+          "id": "F2",
+          "text": "结论处的数据引用",
+          "form": "relation",
+          "modality": [
+            "text",
+            "table"
+          ],
+          "channels": [
+            "rule:numeric",
+            "rule:relation",
+            "structure:table",
+            "llm:semantic"
+          ]
+        }
+      ],
+      "blind_spots": []
+    },
+    {
+      "rubric_item_id": "R3.2",
+      "facets": [
+        {
+          "id": "F1",
+          "text": "局限与不足的陈述",
+          "form": "narrative",
+          "modality": [
+            "text"
+          ],
+          "channels": [
+            "llm:semantic"
+          ]
+        },
+        {
+          "id": "F2",
+          "text": "改进方向",
+          "form": "procedure",
+          "modality": [
+            "text"
+          ],
+          "channels": [
+            "llm:semantic"
+          ]
+        }
+      ],
+      "blind_spots": []
+    }
+  ]
+}

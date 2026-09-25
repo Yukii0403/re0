@@ -1,0 +1,44 @@
+# .dockerignore —— 镜像里**不要**带这些东西
+#
+# ★ 目标（Yukii 要求）：避免本地样本、上传件或密钥进入镜像。
+#   - 上传件与产物：是**用户数据**，绝不能烤进镜像
+#   - 样本原件/数据集：体积大、有版权顾虑，且镜像里跑预置分析并不需要
+#   - 本地工具与临时脚本：cloudflared 二进制 ~55MB、日志、一次性补丁
+#   - 密钥：任何形式的凭据
+
+# --- 密钥/凭据 ---
+.env
+.env.*
+*.key
+secrets.json
+.npmrc
+
+# --- 版本控制与本地工具 ---
+.git
+.gitignore
+tools/
+node_modules/
+*.log
+*.err
+
+# --- 用户数据（上传件 + 分析产物）★ 绝不入镜像 ---
+fixtures/uploads/
+
+# --- 本地样本与数据集（体积/版权；镜像内不跑预置分析）---
+fixtures/veras/
+fixtures/real/*.pdf
+fixtures/real/out/
+fixtures/veras/out-holdout/
+
+# --- 一次性脚本与截图 ---
+src/_p*.py
+src/_mem*.py
+src/_probe*.mjs
+src/_uicheck*.mjs
+fixtures/web/_*.png
+fixtures/**/_shot_*.png
+
+# --- 文档与草稿（镜像不需要）---
+*.md
+!README.md
+design/*.md

@@ -1,0 +1,1275 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://autograder.local/schemas/rubric-assessment.schema.json",
+  "title": "RubricAssessment",
+  "description": "L4 v0.3 输出：按**原 rubric 条目**给出的**定性评估**（结构化发现 + 候选档位/判断 + 可回溯依据 + 审查路由）。★ v0.3 起模型不再提交分数 —— 分数权完全归教师（layer_produces_score=false）。points/binary 条目用五值 judgment；levels 条目用四态 level_status + 候选档位（1–2 个相邻档，教师选最终档）。结构保证：① 定性评价逐条锚定证据（quote 逐字绑定、check 引用受 impact 约束）；② 父项与总分不聚合出分值（教师给分）；③ 所有上游产物只按文件名 + SHA-256 引用，不复制。",
+  "type": "object",
+  "required": [
+    "authority",
+    "doc",
+    "rubric",
+    "assessment_profile",
+    "evidence",
+    "verification",
+    "index",
+    "assessments",
+    "aggregation",
+    "diagnostics"
+  ],
+  "additionalProperties": false,
+  "$defs": {
+    "offset": {
+      "type": "object",
+      "required": [
+        "start",
+        "end"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "start": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "end": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "sourceRef": {
+      "type": "object",
+      "description": "一条引用的出处。offset 覆盖 quote —— full.slice(start,end) === quote 是全项目唯一那条不变量",
+      "required": [
+        "file"
+      ],
+      "additionalProperties": true,
+      "properties": {
+        "file": {
+          "type": "string"
+        },
+        "page": {
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "entry": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "resolvedSpan": {
+      "type": "object",
+      "required": [
+        "span_index",
+        "quote",
+        "offset"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "span_index": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "quote": {
+          "type": "string"
+        },
+        "offset": {
+          "$ref": "#/$defs/offset"
+        },
+        "source_ref": {
+          "type": [
+            "object",
+            "null"
+          ],
+          "additionalProperties": true
+        }
+      }
+    },
+    "evidenceRef": {
+      "type": "object",
+      "required": [
+        "bundle_id",
+        "span_indices",
+        "role",
+        "resolved"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "bundle_id": {
+          "type": "string"
+        },
+        "span_indices": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "role": {
+          "type": "string",
+          "enum": [
+            "support",
+            "counterevidence",
+            "context"
+          ]
+        },
+        "from_other_item": {
+          "type": "boolean",
+          "description": "true = 这条 bundle 属于别的 rubric 条目（证据是注意力信号不是信息边界，所以允许，但必须标出来）"
+        },
+        "resolved": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/resolvedSpan"
+          },
+          "description": "系统解析出来的逐字切片（模型的 span_indices 只经过这一道校验）"
+        }
+      }
+    },
+    "supplementalEvidence": {
+      "type": "object",
+      "required": [
+        "quote",
+        "offset",
+        "source_ref",
+        "binding",
+        "role"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "quote": {
+          "type": "string"
+        },
+        "offset": {
+          "$ref": "#/$defs/offset"
+        },
+        "source_ref": {
+          "$ref": "#/$defs/sourceRef"
+        },
+        "binding": {
+          "type": "object",
+          "required": [
+            "mode",
+            "selection"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "mode": {
+              "type": "string",
+              "enum": [
+                "entry_hint",
+                "cursor",
+                "first"
+              ],
+              "description": "绑定走的是哪一级"
+            },
+            "selection": {
+              "type": "string",
+              "const": "unambiguous",
+              "description": "★ L4 只接受 unambiguous —— 歧义的引用一律丢弃并转人工复核，绝不'取首次出现'当已确认事实"
+            },
+            "occurrences": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        },
+        "role": {
+          "type": "string",
+          "enum": [
+            "support",
+            "counterevidence",
+            "context"
+          ]
+        }
+      }
+    },
+    "assetRef": {
+      "type": "object",
+      "required": [
+        "asset_id",
+        "page",
+        "file",
+        "role"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "asset_id": {
+          "type": "string",
+          "pattern": "^page-[0-9]+$"
+        },
+        "page": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "file": {
+          "type": "string"
+        },
+        "role": {
+          "type": "string",
+          "enum": [
+            "support",
+            "counterevidence",
+            "context"
+          ]
+        },
+        "readable": {
+          "type": [
+            "boolean",
+            "null"
+          ],
+          "description": "false → 视觉资产读不到，必须转人工复核"
+        }
+      }
+    },
+    "verificationRef": {
+      "type": "object",
+      "required": [
+        "check_id",
+        "impact",
+        "stance"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "check_id": {
+          "type": "string"
+        },
+        "impact": {
+          "type": "string",
+          "enum": [
+            "support",
+            "contradict",
+            "neutral"
+          ]
+        },
+        "stance": {
+          "type": "string",
+          "enum": [
+            "pass",
+            "fail",
+            "unverified"
+          ],
+          "description": "由系统回填，模型不给"
+        },
+        "scope": {
+          "type": "string",
+          "enum": [
+            "rubric_item",
+            "document"
+          ]
+        },
+        "scope_inferred": {
+          "type": "boolean",
+          "description": "true = 上游是 L3 v0.1 产物、没有 scope 字段，这里的作用域是推导来的（不是确定事实）"
+        }
+      }
+    },
+    "finding": {
+      "type": "object",
+      "description": "★ 结构化定性发现（v0.3 核心）。模型填：polarity/kind/note/severity/quote/entry_hint/check_id；系统回填：located（quote 绑定结果）/ verification（check 挂钩结果）。kind 只是宽类别标签，不参与任何送审路由；「是否经 L3 验证」由 check_id 是否有效挂上表达（系统回填），不设模型自报的 certainty 字段（项目原则：不采信模型自报置信度）。",
+      "required": [
+        "polarity",
+        "kind",
+        "note"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "polarity": {
+          "type": "string",
+          "enum": [
+            "strength",
+            "concern",
+            "neutral"
+          ],
+          "description": "封闭三值：做得好 / 有问题 / 中性观察。不合并成红黄绿——「部分做到」「没有做到」「材料不足」是不同情况"
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "calculation",
+            "reasoning",
+            "completeness",
+            "presentation",
+            "other"
+          ],
+          "description": "宽类别；细节由 note 自然覆盖，不做成硬枚举"
+        },
+        "note": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 500,
+          "description": "具体说明（模型派生判断，不是原始证据）"
+        },
+        "severity": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "enum": [
+            "major",
+            "minor",
+            null
+          ],
+          "description": "影响程度（可选；不用 impact 这个词，避免与 verification_refs 的 support/contradict/neutral 混淆）"
+        },
+        "quote": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "可选的原文定位：逐字引用，系统绑定后回填 located；绑不上则该 finding 保留但 located=null 并转人工复核"
+        },
+        "entry_hint": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "L1 条目 id 提示，用于消歧"
+        },
+        "check_id": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "可选的 L3 check 挂钩：可机械验证的断言（如计算错误）应当挂钩，而不是凭眼睛断言"
+        },
+        "located": {
+          "type": [
+            "object",
+            "null"
+          ],
+          "additionalProperties": false,
+          "required": [
+            "offset",
+            "source_ref",
+            "binding"
+          ],
+          "description": "系统回填：quote 的逐字定位（null = 没给 quote，或给了但绑不上——后者见 diagnostics.dropped_findings）",
+          "properties": {
+            "offset": {
+              "$ref": "#/$defs/offset"
+            },
+            "source_ref": {
+              "$ref": "#/$defs/sourceRef"
+            },
+            "binding": {
+              "type": "object",
+              "required": [
+                "mode",
+                "selection"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "mode": {
+                  "type": "string",
+                  "enum": [
+                    "entry_hint",
+                    "cursor",
+                    "first"
+                  ]
+                },
+                "selection": {
+                  "type": "string",
+                  "const": "unambiguous"
+                },
+                "occurrences": {
+                  "type": "integer",
+                  "minimum": 1
+                }
+              }
+            }
+          }
+        },
+        "verification": {
+          "type": [
+            "object",
+            "null"
+          ],
+          "additionalProperties": false,
+          "required": [
+            "check_id",
+            "stance"
+          ],
+          "description": "系统回填：check_id 有效挂钩时才有（null = 没挂或挂的 check 不存在——后者见 diagnostics.dropped_findings）",
+          "properties": {
+            "check_id": {
+              "type": "string"
+            },
+            "stance": {
+              "type": "string",
+              "enum": [
+                "pass",
+                "fail",
+                "unverified"
+              ]
+            },
+            "scope": {
+              "type": "string",
+              "enum": [
+                "rubric_item",
+                "document"
+              ]
+            }
+          }
+        },
+        "warrant": {
+          "type": [
+            "object",
+            "null"
+          ],
+          "additionalProperties": false,
+          "required": [
+            "student_quote",
+            "what_is_wrong",
+            "basis_kind",
+            "basis_detail"
+          ],
+          "description": "★★「有依据的内容错误候选」：仅在主张「学生此处写错了（内容错误）」时填写 —— 风格/形式问题与单纯缺项都不要填。它不是自我声明的布尔值：三要素必须给全，系统会逐项核验（原话能否在原文定位、错在哪是否成文、依据是否成文且可核验），通过才写 verified=true。依据不足但可能重要的观察也应填进来 —— 系统标 verified=false，让它落到待核查而不是第一屏。",
+          "properties": {
+            "student_quote": {
+              "type": "string",
+              "minLength": 4,
+              "description": "① 学生原话（逐字；系统会去原文定位，定位不到即判不成立）"
+            },
+            "student_quote_located": {
+              "type": [
+                "object",
+                "null"
+              ],
+              "description": "① 由系统回填的定位结果（offset）"
+            },
+            "what_is_wrong": {
+              "type": "string",
+              "minLength": 10,
+              "maxLength": 400,
+              "description": "② 具体错在哪里（正确的是什么、错在哪一步）"
+            },
+            "basis_kind": {
+              "type": "string",
+              "enum": [
+                "rubric_requirement",
+                "self_contradiction",
+                "l3_check"
+              ],
+              "description": "③ 依据类型"
+            },
+            "basis_detail": {
+              "type": "string",
+              "minLength": 10,
+              "maxLength": 400,
+              "description": "③ 依据的具体内容"
+            },
+            "basis_check": {
+              "type": [
+                "object",
+                "null"
+              ],
+              "description": "③ 当依据是 L3 check 时，由系统回填的该 check 信息"
+            },
+            "bound": {
+              "type": "boolean",
+              "description": "★★ 由程序回填（不是模型自报）：三要素**已绑定**才为 true。★ 只表示依据绑上了，**不表示内容正确**（未做语义核验）；面向教师表述为「依据已绑定，内容待核对」"
+            },
+            "unbound_reasons": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "未绑上的原因码"
+            },
+            "binding_scope": {
+              "type": "string",
+              "enum": [
+                "structural_only"
+              ],
+              "description": "★ 约定：只做结构性绑定，未做语义核验"
+            }
+          }
+        }
+      }
+    },
+    "assessment": {
+      "type": "object",
+      "description": "★ 契约按 strategy 分支（v0.3）：points/binary → judgment 五值；levels → level_status 四态 + candidate_level_ids（1–2 个相邻档）。没有 score 字段 —— 分数权归教师，模型给分没有落点。",
+      "required": [
+        "assessment_id",
+        "rubric_item_id",
+        "strategy_type",
+        "findings",
+        "evidence_refs",
+        "supplemental_evidence",
+        "asset_refs",
+        "verification_refs",
+        "rationale",
+        "review",
+        "diagnostics"
+      ],
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "strategy_type": {
+                "const": "levels"
+              }
+            },
+            "required": [
+              "strategy_type"
+            ]
+          },
+          "then": {
+            "required": [
+              "level_status"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "strategy_type": {
+                "enum": [
+                  "points",
+                  "binary"
+                ]
+              }
+            },
+            "required": [
+              "strategy_type"
+            ]
+          },
+          "then": {
+            "required": [
+              "judgment"
+            ]
+          }
+        }
+      ],
+      "properties": {
+        "assessment_id": {
+          "type": "string",
+          "pattern": "^a[0-9]{4}$",
+          "description": "由系统分配（模型不能自报）"
+        },
+        "tool_call_index": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "rubric_item_id": {
+          "type": "string",
+          "description": "★ 只允许可评分叶子 —— 评价只挂在 rubric 条目上，facet 在 schema 里没有落点"
+        },
+        "strategy_type": {
+          "type": "string",
+          "enum": [
+            "points",
+            "levels",
+            "binary"
+          ],
+          "description": "系统回填（来自 assessment profile）；决定本条走 judgment 还是 level_status 分支"
+        },
+        "judgment": {
+          "type": "string",
+          "enum": [
+            "satisfied",
+            "partially_satisfied",
+            "not_satisfied",
+            "insufficient_evidence",
+            "not_applicable"
+          ],
+          "description": "仅 points/binary 条目。not_satisfied=已有材料支持\"不满足\"；insufficient_evidence=材料不足以判断（两者必须分清，都没找到证据时用后者）"
+        },
+        "level_status": {
+          "type": "string",
+          "enum": [
+            "candidate",
+            "insufficient_evidence",
+            "not_applicable",
+            "outside_defined_levels"
+          ],
+          "description": "仅 levels 条目。candidate=有依据提出候选档；insufficient_evidence=原件不可读/图表无法核实/原文覆盖不可靠；not_applicable=标准不适用于该作业（≠学生没写，交教师确认）；outside_defined_levels=已通读可靠完整原文仍无相关内容、但所有档位都预设\"学生写了\"（留空候选，不硬选，不自造档）"
+        },
+        "candidate_level_ids": {
+          "type": "array",
+          "minItems": 0,
+          "maxItems": 2,
+          "items": {
+            "type": "string"
+          },
+          "description": "★ level_status=candidate 时 1–2 个（必须是 profile 里已定义的相邻档 —— 这条由调用闸 levelsError 强制）；**非 candidate 状态一律空数组**（insufficient_evidence / not_applicable / outside_defined_levels 都必须为空）。教师选最终档；唯一候选时这就是「AI 建议档位」。★ 注：schema 只能给 0–2 的形状约束，「candidate 必须给档」「双候选必须相邻」是语义约束，在调用闸里判。"
+        },
+        "boundary_condition": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "双候选时必填（调用闸校验）：写明卡在哪个条件、两档各差什么。单候选可为 null。"
+        },
+        "findings": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/finding"
+          },
+          "description": "结构化定性发现（做得好/有问题 + 原文定位 + 可选 L3 挂钩）"
+        },
+        "evidence_refs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/evidenceRef"
+          }
+        },
+        "supplemental_evidence": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/supplementalEvidence"
+          },
+          "description": "★ 只保存**解析成功**的补充引用；绑不回去的原始请求只能留在 diagnostics 里"
+        },
+        "asset_refs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/assetRef"
+          }
+        },
+        "verification_refs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/verificationRef"
+          }
+        },
+        "rationale": {
+          "type": "object",
+          "description": "★ rationale 是**派生判断**，不是原始证据：永远标 derived_by=model、带长度记账、且必须至少有有效依据（否则系统标 missing_support_evidence 转人工）。长度是**软上限**：超过 `limit` **不拒收、不改写**，只记 over_limit=true 并强制送审（rationale_over_limit）。",
+          "required": [
+            "text",
+            "chars",
+            "derived_by",
+            "limit",
+            "over_limit"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "text": {
+              "type": "string",
+              "maxLength": 2000,
+              "description": "2000 只是防爆量的工程上限，系统不在任何地方截断模型的话"
+            },
+            "chars": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 2000
+            },
+            "derived_by": {
+              "type": "string",
+              "const": "model"
+            },
+            "limit": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "建议长度（当前 300 字）"
+            },
+            "over_limit": {
+              "type": "boolean",
+              "description": "true = 超过建议长度：不拒收，但强制送审"
+            }
+          }
+        },
+        "review": {
+          "type": "object",
+          "description": "★ 只由**系统规则**决定（required + required_reason_codes）。L4 **没有**「模型建议送审」这条通道；主观不确定性走 judgment/level_status = insufficient_evidence 表达。送审看证据断链、check 冲突与未解决的不确定性，**不凭 kind 标签触发**。",
+          "required": [
+            "required",
+            "required_reason_codes"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "required": {
+              "type": "boolean"
+            },
+            "required_reason_codes": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "insufficient_evidence",
+                  "not_applicable",
+                  "outside_defined_levels",
+                  "l3_fail_for_item",
+                  "referenced_l3_fail",
+                  "referenced_l3_unverified",
+                  "source_conflict",
+                  "supplemental_evidence_used",
+                  "visual_asset_unreadable",
+                  "missing_support_evidence",
+                  "dropped_assessment_ref",
+                  "rationale_over_limit",
+                  "model_output_rejected",
+                  "incomplete_assessment"
+                ]
+              },
+              "description": "dropped_assessment_ref = 该条目提交的引用（含 finding 的 quote/check）里只要有一条最终被丢弃。不把 L2 检索阶段丢弃的候选算进来。"
+            }
+          }
+        },
+        "diagnostics": {
+          "type": "object",
+          "required": [
+            "dropped_evidence_refs",
+            "dropped_verification_refs",
+            "dropped_supplemental_quotes",
+            "dropped_asset_refs",
+            "dropped_findings"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "dropped_evidence_refs": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": true
+              }
+            },
+            "dropped_verification_refs": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": true
+              }
+            },
+            "dropped_supplemental_quotes": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": true
+              }
+            },
+            "dropped_findings": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": true
+              },
+              "description": "finding 的 quote 绑不上 / check 挂不上：finding 本身保留（定性观察不丢），但定位断链必须让人看见"
+            },
+            "dropped_asset_refs": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": true
+              }
+            },
+            "rejected_submissions": {
+              "type": "integer",
+              "minimum": 0
+            }
+          }
+        }
+      }
+    }
+  },
+  "properties": {
+    "authority": {
+      "type": "object",
+      "description": "权威声明。评分权威永远是 rubric；v0.3 起 L4 不产生分值（layer_produces_score=false）——定性评价 + 候选档位，最终分数完全由教师决定。",
+      "required": [
+        "scoring_authority",
+        "rubric_sha256",
+        "layer_produces_score",
+        "advisory_only",
+        "final_score_requires_teacher_review",
+        "layer_version"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "scoring_authority": {
+          "type": "string",
+          "const": "rubric"
+        },
+        "rubric_sha256": {
+          "type": "string"
+        },
+        "layer_produces_score": {
+          "type": "boolean",
+          "const": false,
+          "description": "★ v0.3：模型不再提交分数；levels 唯一候选也只是「AI 建议档位」，教师选最终档"
+        },
+        "advisory_only": {
+          "type": "boolean",
+          "const": true
+        },
+        "final_score_requires_teacher_review": {
+          "type": "boolean",
+          "const": true
+        },
+        "layer_version": {
+          "type": "string"
+        },
+        "notes": {
+          "type": "string"
+        }
+      }
+    },
+    "doc": {
+      "type": "object",
+      "required": [
+        "name",
+        "sha256"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "sha256": {
+          "type": "string"
+        },
+        "text_file": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "index_file": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "rubric": {
+      "type": "object",
+      "description": "原始 rubric（评分权威）—— 只引用不复制；source_sha256 是 rubric **原件**的哈希",
+      "required": [
+        "rubric_id",
+        "source_sha256"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "rubric_id": {
+          "type": "string"
+        },
+        "source_sha256": {
+          "type": "string"
+        },
+        "file": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "assessment_profile": {
+      "type": "object",
+      "description": "★ L4 的执行配置（不是教师 rubric）。profile 变 → 只失效 L4 及以后；rubric 原件变 → 全链失效。",
+      "required": [
+        "profile_id",
+        "version",
+        "status",
+        "file",
+        "sha256"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "profile_id": {
+          "type": "string"
+        },
+        "version": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "provisional_test",
+            "teacher_confirmed",
+            "retired"
+          ]
+        },
+        "file": {
+          "type": "string"
+        },
+        "sha256": {
+          "type": "string"
+        }
+      }
+    },
+    "evidence": {
+      "type": "object",
+      "description": "L2 证据产物 —— 只按文件名 + SHA-256 引用，不复制（facet 里因此不可能出现分数）",
+      "required": [
+        "file",
+        "sha256"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "file": {
+          "type": "string"
+        },
+        "sha256": {
+          "type": "string"
+        },
+        "plan_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "plan_version": {
+          "type": [
+            "integer",
+            "null"
+          ]
+        }
+      }
+    },
+    "verification": {
+      "type": "object",
+      "description": "L3 验证产物 —— 只引用不复制",
+      "required": [
+        "file",
+        "sha256"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "file": {
+          "type": "string"
+        },
+        "sha256": {
+          "type": "string"
+        },
+        "layer_version": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "上游声明的 L3 契约版本；v0.1 产物没有这个字段 → null"
+        },
+        "scope_inferred": {
+          "type": "boolean",
+          "description": "true = 上游没有 scope 字段，作用域是推导来的"
+        },
+        "checks_total": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "rubric_item_checks": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "document_checks": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "文档级检查 —— 不自动影响任何评价"
+        }
+      }
+    },
+    "index": {
+      "type": "object",
+      "required": [
+        "file",
+        "sha256"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "file": {
+          "type": "string"
+        },
+        "sha256": {
+          "type": "string"
+        },
+        "tables": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "assessments": {
+      "type": "array",
+      "description": "只包含**可评分叶子**的定性评估；父项与总分不在这里（也没有分数）",
+      "items": {
+        "$ref": "#/$defs/assessment"
+      }
+    },
+    "aggregation": {
+      "type": "object",
+      "description": "★ v0.3 起不聚合分数 —— 教师给分。这里只有**覆盖账目**：每个叶子是否拿到了有效状态（judgment / level_status）、缺哪些。maximum 保留（教师给分时参考满分）。",
+      "required": [
+        "sections",
+        "total"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "sections": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "rubric_item_id",
+              "aggregation",
+              "maximum",
+              "complete",
+              "children"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "rubric_item_id": {
+                "type": "string"
+              },
+              "aggregation": {
+                "type": "string",
+                "enum": [
+                  "sum_children"
+                ]
+              },
+              "maximum": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "complete": {
+                "type": "boolean",
+                "description": "所有子叶子都拿到有效状态"
+              },
+              "children": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "rubric_item_id",
+                    "status",
+                    "maximum"
+                  ],
+                  "additionalProperties": false,
+                  "properties": {
+                    "rubric_item_id": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "judged",
+                        "candidate",
+                        "non_candidate_state",
+                        "missing"
+                      ],
+                      "description": "judged=points/binary 有 judgment；candidate=levels 有候选档；non_candidate_state=insufficient_evidence/not_applicable/outside_defined_levels；missing=无 assessment"
+                    },
+                    "judgment": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "level_status": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "maximum": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "total": {
+          "type": "object",
+          "required": [
+            "maximum",
+            "complete",
+            "incomplete_items",
+            "rule"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "maximum": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "满分（教师参考）"
+            },
+            "complete": {
+              "type": "boolean",
+              "description": "所有可评分叶子都拿到有效状态"
+            },
+            "incomplete_items": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "rule": {
+              "type": "string",
+              "const": "no_machine_scores_teacher_decides",
+              "description": "★ v0.3：机器不产生分值；教师给分"
+            }
+          }
+        }
+      }
+    },
+    "diagnostics": {
+      "type": "object",
+      "required": [
+        "diagnostic_only",
+        "l4_version",
+        "attempted",
+        "accepted",
+        "rejected",
+        "accounted",
+        "items_total",
+        "items_incomplete",
+        "review_required",
+        "rejected_calls",
+        "dropped_refs",
+        "not_final"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "diagnostic_only": {
+          "type": "boolean",
+          "const": true
+        },
+        "l4_version": {
+          "type": "string"
+        },
+        "attempted": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "accepted": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "rejected": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "accounted": {
+          "type": "boolean",
+          "const": true,
+          "description": "accepted + rejected === attempted：一次调用不许凭空消失"
+        },
+        "items_total": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "items_incomplete": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "review_required": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "rejected_calls": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "index",
+              "tool",
+              "reason_code"
+            ],
+            "additionalProperties": true,
+            "properties": {
+              "index": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "tool": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "reason_code": {
+                "type": "string",
+                "enum": [
+                  "unknown_tool",
+                  "malformed_arguments_json",
+                  "arguments_failed_schema",
+                  "rubric_item_mismatch",
+                  "not_scorable_item",
+                  "duplicate_rubric_item",
+                  "level_not_in_rubric",
+                  "levels_not_adjacent",
+                  "too_many_candidates",
+                  "candidates_with_non_candidate_status",
+                  "boundary_condition_required",
+                  "judgment_forbidden_for_levels",
+                  "level_status_forbidden_for_points",
+                  "internal_tool_error",
+                  "budget_exhausted"
+                ]
+              }
+            }
+          }
+        },
+        "dropped_refs": {
+          "type": "object",
+          "required": [
+            "evidence",
+            "verification",
+            "supplemental",
+            "asset",
+            "findings"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "evidence": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "verification": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "supplemental": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "asset": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "findings": {
+              "type": "integer",
+              "minimum": 0
+            }
+          }
+        },
+        "document_checks_not_used_for_score": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "turns": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": true
+          }
+        },
+        "notices": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "not_final": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}

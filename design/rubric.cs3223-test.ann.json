@@ -1,0 +1,13 @@
+[
+  { "id": "R1", "line": 1, "parent": null },
+  { "id": "R1.1", "line": 2, "parent": "R1" },
+  { "id": "R1.2", "line": 3, "parent": "R1" },
+  { "id": "R2", "line": 4, "parent": null },
+  { "id": "R2.1", "line": 5, "parent": "R2" },
+  { "id": "R2.2", "line": 6, "parent": "R2" },
+  { "id": "R2.3", "line": 7, "parent": "R2" },
+  { "id": "R3", "line": 8, "parent": null },
+  { "id": "R3.1", "line": 9, "parent": "R3" },
+  { "id": "R3.2", "line": 10, "parent": "R3" },
+  { "id": "R3.3", "line": 11, "parent": "R3" }
+]

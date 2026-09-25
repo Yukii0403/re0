@@ -1,0 +1,141 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://autograder.local/schemas/document-index.schema.json",
+  "title": "DocumentIndex",
+  "description": "L1 输出：作业的文本索引（目录）。只指路，不改原文。每条 text 必须能在配套的 <name>.txt 中按 start:end 原样切出。",
+  "type": "object",
+  "required": ["doc", "entries", "tables"],
+  "additionalProperties": false,
+  "$defs": {
+    "cell": {
+      "type": "object",
+      "description": "一个单元格：逐字文本 + 它在正文 .txt 里的字符区间。必须满足 slice(start,end) === text。",
+      "required": ["text", "start", "end"],
+      "additionalProperties": false,
+      "properties": {
+        "text": { "type": "string" },
+        "start": { "type": "integer", "minimum": 0 },
+        "end": { "type": "integer", "minimum": 0 }
+      }
+    }
+  },
+  "properties": {
+    "doc": {
+      "type": "object",
+      "required": ["name", "kind", "chars", "text_file"],
+      "additionalProperties": false,
+      "properties": {
+        "name": { "type": "string", "description": "原始文件名" },
+        "kind": { "type": "string", "enum": ["pdf", "docx", "text"], "description": "text = 纯文本输入（l1/1.3.1 新增）。这类输入**没有版式可推**：逐行给中性几何，分类只看文本形态，表格只走制表符/宽空白回退。加它是为了能在公开数据集（已经是抽好的 txt）上评估 L2/L3/L4。" },
+        "sha256": { "type": "string", "description": "原件哈希，可回溯到哪一份提交" },
+        "chars": { "type": "integer", "description": "配套 .txt 的字符数，用于校验偏移是否越界" },
+        "text_file": { "type": "string", "description": "配套原文文件名，如 实验二.txt" },
+        "generator": { "type": "string", "description": "如 l1/1.0.0，便于日后重跑比对" },
+        "warnings": {
+          "type": "array",
+          "items": { "type": "string", "enum": ["possible_two_column", "no_text_layer", "docx_other_nodes_skipped"] },
+          "description": "已知坑的显式标注：双栏顺序存疑 / 该页无文本层 / docx 中未识别的顶层节点被跳过"
+        },
+        "line_coverage": {
+          "type": "string",
+          "pattern": "^[0-9]+/[0-9]+$",
+          "description": "块内行数合计 / 非空原文行数。两者必须相等 —— 这是「一行不丢」的在线断言"
+        },
+        "tables": { "type": "integer", "minimum": 0, "description": "识别出的表格数（= tables 的长度，冗余但便于快速判断）" }
+      }
+    },
+    "tables": {
+      "type": "array",
+      "description": "★ 最小表格行列还原。**结构只存在于索引里，正文 .txt 一个字符都不动**。下游据此可用 (行标签, 列头) 唯一确定一个值，而不是靠子串猜。列边界的来源：PDF 用抽取阶段按几何记下的「宽空白区间」（`cell_breaks`），docx 用制表符。已知还原不出的：合并单元格、跨行单元格、列间没有可识别间隙的列 —— 那些情况下列数不足 2，本适配器直接不认它是表格（宁可不认，也不猜错）。",
+      "items": {
+        "type": "object",
+        "required": ["id", "header_detected", "column_count", "columns", "rows", "entry_range", "truncated", "truncated_at", "key_query_safe", "cell_split_source"],
+        "additionalProperties": false,
+        "properties": {
+          "id": { "type": "string", "pattern": "^t[0-9]{4}$" },
+          "caption_entry": { "type": ["string", "null"], "description": "紧邻其前的「表 N …」条目的 id；没有则为 null" },
+          "entry_range": { "type": "string", "description": "本表占用的条目区间，如 e0021-e0024" },
+          "header_detected": { "type": "boolean", "description": "首行不含数字 → 判为列头；含数字 → 不设列头（不猜）" },
+          "column_count": { "type": "integer", "minimum": 2, "description": "还原出的列数" },
+          "columns": {
+            "type": ["array", "null"],
+            "items": { "$ref": "#/$defs/cell" }
+          },
+          "rows": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["label", "cells"],
+              "additionalProperties": false,
+              "properties": {
+                "label": { "type": ["string", "null"], "description": "该行第一个单元格（行标签）" },
+                "cells": { "type": "array", "items": { "$ref": "#/$defs/cell" } }
+              }
+            }
+          },
+          "truncated": { "type": "boolean", "description": "★ 紧随其后还有 ≥2 列但列数不同的行 —— 表在此被截断。截断本身要可见，不静默丢行" },
+          "truncated_at": { "type": ["string", "null"], "description": "被截断处的条目 id" },
+          "key_query_safe": {
+            "type": "boolean",
+            "description": "★ 允许用于键值查询的机械条件 = `header_detected && !truncated`。有列头才有列名可查；没截断才保证行是全的。为 false 时下游必须放弃键值查询（不得降级成猜测）"
+          },
+          "cell_split_source": {
+            "type": "string",
+            "enum": ["pdf_geometry", "docx_cell", "text_wide_space", "mixed"],
+            "description": "★ 列边界的**派生来源**（不是同一等级的确定事实）：pdf_geometry = 几何实测的宽空白 item；docx_cell = 制表符（真单元格）；text_wide_space = 文本里 2 个以上空格（最弱）；mixed = 同一张表里混用了多种"
+          }
+        }
+      }
+    },
+    "entries": {
+      "type": "array",
+      "description": "按原文顺序排列。id 递增即阅读顺序，不需要额外的顺序字段。",
+      "items": {
+        "type": "object",
+        "required": ["id", "type", "lines", "start", "end", "text", "table_id"],
+        "additionalProperties": false,
+        "properties": {
+          "id": { "type": "string", "pattern": "^e[0-9]{4}$" },
+          "type": {
+            "type": "string",
+            "enum": ["heading", "paragraph", "figure", "table", "formula", "code", "header", "footer"]
+          },
+          "num": {
+            "type": ["string", "null"],
+            "description": "编号，取自原文正则（图 3 -> \"3\"）。抓不到为 null，不做推断"
+          },
+          "level": {
+            "type": ["integer", "null"],
+            "minimum": 1,
+            "maximum": 6,
+            "description": "仅 heading 有值"
+          },
+          "page": {
+            "type": ["integer", "null"],
+            "description": "PDF 页号；docx 为 null"
+          },
+          "lines": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "该块占的原文行数。段落合并后大于 1；text 里的 \\n 就是这些行的边界"
+          },
+          "table_id": {
+            "type": ["string", "null"],
+            "description": "该条目属于哪张表（指向 tables[].id）；不属于任何表为 null"
+          },
+          "cell_breaks": {
+            "type": "array",
+            "description": "★ 该条目内部的列分隔区间（绝对偏移）。PDF 来自几何上的宽空白 item，docx 来自制表符。只有识别出来才写 —— 有了它，任何一行都能被拆成单元格，不必依赖文本里的空格数。",
+            "items": { "type": "object", "required": ["start", "end"], "additionalProperties": false, "properties": { "start": { "type": "integer", "minimum": 0 }, "end": { "type": "integer", "minimum": 0 } } }
+          },
+          "start": { "type": "integer", "minimum": 0 },
+          "end": { "type": "integer", "minimum": 0 },
+          "text": {
+            "type": "string",
+            "description": "原文逐字片段。规则生成，禁止模型改写。"
+          }
+        }
+      }
+    }
+  }
+}

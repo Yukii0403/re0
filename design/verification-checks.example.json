@@ -1,0 +1,1962 @@
+{
+  "authority": {
+    "scoring_authority": "rubric",
+    "rubric_sha256": "a92d116d289113d6567d08950c3f4b540ea8dc239fbcc99ed9346dc8e2978782",
+    "layer_produces_score": false,
+    "layer_version": "v0.2",
+    "notes": "L3 只做机械验证。pass / fail 是验证结论，不是分数；L3 不产生任何评分。产物里没有任何自由措辞字段 —— 展示句由程序从 reason_codes + basis 生成，模板只有一份定义。fail 必须同时满足 basis.preconditions 的四项，缺一即降级。"
+  },
+  "doc": {
+    "name": "report.pdf",
+    "sha256": "a2ffb76c203c6fe2da648201cf9f8f8009946f7ec3f03fb72247d8c5683342e6",
+    "text_file": "report.pdf.txt",
+    "index_file": "report.pdf.index.json"
+  },
+  "rubric": {
+    "rubric_id": "rb_lab2_v1",
+    "sha256": "a92d116d289113d6567d08950c3f4b540ea8dc239fbcc99ed9346dc8e2978782",
+    "file": "canonical-rubric.example.json"
+  },
+  "evidence": {
+    "file": "evidence-candidates.example.json",
+    "sha256": "712517d8795e20b5ea0a45f94fe0a1baca80d8c04bf28d627cc355fd96238ede",
+    "plan_id": "rp_lab2",
+    "plan_version": 2
+  },
+  "index": {
+    "file": "report.pdf.index.json",
+    "sha256": "ef6cac859ad5fc116d211895f02920906cc2c2a86f9880c9943fbc9e1354c33f",
+    "tables": 1
+  },
+  "checks": [
+    {
+      "id": "ck0001",
+      "kind": "numeric_recompute",
+      "operator": "difference",
+      "scope": "rubric_item",
+      "rubric_item_id": "R2.1",
+      "claim": {
+        "ref": {
+          "bundle_id": "ev0005",
+          "span_index": 0
+        },
+        "span_offset": {
+          "start": 832,
+          "end": 884
+        },
+        "span_structured": true,
+        "source_ref": {
+          "file": "report.pdf",
+          "sha256": "a2ffb76c203c6fe2da648201cf9f8f8009946f7ec3f03fb72247d8c5683342e6",
+          "page": 2,
+          "entry": "e0022"
+        },
+        "ok": true,
+        "selection": "unambiguous",
+        "quote": "注意力模块带来约 3.5 个百分点的提升",
+        "offset": {
+          "start": 836,
+          "end": 856
+        },
+        "reasons": []
+      },
+      "operands": [
+        {
+          "ref": {
+            "bundle_id": "ev0008",
+            "span_index": 1
+          },
+          "span_offset": {
+            "start": 727,
+            "end": 748
+          },
+          "span_structured": true,
+          "source_ref": {
+            "file": "report.pdf",
+            "sha256": "a2ffb76c203c6fe2da648201cf9f8f8009946f7ec3f03fb72247d8c5683342e6",
+            "page": 1,
+            "entry": "e0018"
+          },
+          "ok": true,
+          "selection": "unambiguous",
+          "quote": "0.847",
+          "offset": {
+            "start": 739,
+            "end": 744
+          },
+          "label": "+ attention 0.847 7.1",
+          "label_offset": {
+            "start": 727,
+            "end": 748
+          },
+          "label_occurrences": 1,
+          "value_anchor": "inside_label",
+          "reasons": [],
+          "raw": "0.847",
+          "value": 0.847,
+          "unit": "",
+          "dim": "ratio",
+          "base": "ratio",
+          "base_value": 0.847,
+          "dim_source": {
+            "quote": "验证准确率",
+            "offset": {
+              "start": 692,
+              "end": 697
+            },
+            "dim": "ratio",
+            "via": "keyword",
+            "marker": "准确率"
+          },
+          "dim_source_status": "cited"
+        },
+        {
+          "ref": {
+            "bundle_id": "ev0008",
+            "span_index": 0
+          },
+          "span_offset": {
+            "start": 708,
+            "end": 726
+          },
+          "span_structured": true,
+          "source_ref": {
+            "file": "report.pdf",
+            "sha256": "a2ffb76c203c6fe2da648201cf9f8f8009946f7ec3f03fb72247d8c5683342e6",
+            "page": 1,
+            "entry": "e0018"
+          },
+          "ok": true,
+          "selection": "unambiguous",
+          "quote": "0.812",
+          "offset": {
+            "start": 717,
+            "end": 722
+          },
+          "label": "baseline 0.812 6.4",
+          "label_offset": {
+            "start": 708,
+            "end": 726
+          },
+          "label_occurrences": 1,
+          "value_anchor": "inside_label",
+          "reasons": [],
+          "raw": "0.812",
+          "value": 0.812,
+          "unit": "",
+          "dim": "ratio",
+          "base": "ratio",
+          "base_value": 0.812,
+          "dim_source": {
+            "quote": "验证准确率",
+            "offset": {
+              "start": 692,
+              "end": 697
+            },
+            "dim": "ratio",
+            "via": "keyword",
+            "marker": "准确率"
+          },
+          "dim_source_status": "cited"
+        }
+      ],
+      "warnings": [],
+      "stance": "pass",
+      "reason_codes": [],
+      "computed": {
+        "value": 0.03499999999999992,
+        "dim": "ratio"
+      },
+      "expected": {
+        "value": 0.035,
+        "dim": "ratio",
+        "origin": "source_bound",
+        "offset": {
+          "start": 845,
+          "end": 853
+        },
+        "source_ref": {
+          "file": "report.pdf",
+          "sha256": "a2ffb76c203c6fe2da648201cf9f8f8009946f7ec3f03fb72247d8c5683342e6",
+          "page": 2,
+          "entry": "e0022"
+        },
+        "selection": "unambiguous",
+        "value_anchor": "inside_label",
+        "dim_source_status": "inline",
+        "quote": "3.5 个百分点",
+        "raw": "3.5",
+        "unit": "个百分点"
+      },
+      "delta": {
+        "abs": 8.326672684688674e-17,
+        "tolerance": {
+          "kind": "rel",
+          "value": 0.05
+        }
+      },
+      "tolerance": "rel_5pct",
+      "basis": {
+        "preconditions": {
+          "input_binding": true,
+          "rule_applicable": true,
+          "tolerance_policy": true,
+          "computation_complete": true
+        },
+        "formula": "a − b",
+        "values": [
+          0.847,
+          0.812
+        ],
+        "expected_origin": "source_bound"
+      }
+    },
+    {
+      "id": "ck0002",
+      "kind": "numeric_recompute",
+      "operator": "difference",
+      "scope": "rubric_item",
+      "rubric_item_id": "R2.1",
+      "claim": {
+        "ref": {
+          "bundle_id": "ev0005",
+          "span_index": 0
+        },
+        "span_offset": {
+          "start": 832,
+          "end": 884
+        },
+        "span_structured": true,
+        "source_ref": {
+          "file": "report.pdf",
+          "sha256": "a2ffb76c203c6fe2da648201cf9f8f8009946f7ec3f03fb72247d8c5683342e6",
+          "page": 2,
+          "entry": "e0022"
+        },
+        "ok": true,
+        "selection": "unambiguous",
+        "quote": "注意力模块带来约 3.5 个百分点的提升",
+        "offset": {
+          "start": 836,
+          "end": 856
+        },
+        "reasons": []
+      },
+      "operands": [
+        {
+          "ref": {
+            "bundle_id": "ev0008",
+            "span_index": 1
+          },
+          "span_offset": {
+            "start": 727,
+            "end": 748
+          },
+          "span_structured": true,
+          "source_ref": {
+            "file": "report.pdf",
+            "sha256": "a2ffb76c203c6fe2da648201cf9f8f8009946f7ec3f03fb72247d8c5683342e6",
+            "page": 1,
+            "entry": "e0018"
+          },
+          "ok": true,
+          "selection": "unambiguous",
+          "quote": "0.847",
+          "offset": {
+            "start": 739,
+            "end": 744
+          },
+          "label": "+ attention 0.847 7.1",
+          "label_offset": {
+            "start": 727,
+            "end": 748
+          },
+          "label_occurrences": 1,
+          "value_anchor": "inside_label",
+          "reasons": [],
+          "raw": "0.847",
+          "value": 0.847,
+          "unit": "",
+          "dim": "unknown",
+          "base": "unknown",
+          "base_value": 0.847,
+          "dim_source_status": "undeclared"
+        },
+        {
+          "ref": {
+            "bundle_id": "ev0008",
+            "span_index": 0
+          },
+          "span_offset": {
+            "start": 708,
+            "end": 726
+          },
+          "span_structured": true,
+          "source_ref": {
+            "file": "report.pdf",
+            "sha256": "a2ffb76c203c6fe2da648201cf9f8f8009946f7ec3f03fb72247d8c5683342e6",
+            "page": 1,
+            "entry": "e0018"
+          },
+          "ok": true,
+          "selection": "unambiguous",
+          "quote": "0.812",
+          "offset": {
+            "start": 717,
+            "end": 722
+          },
+          "label": "baseline 0.812 6.4",
+          "label_offset": {
+            "start": 708,
+            "end": 726
+          },
+          "label_occurrences": 1,
+          "value_anchor": "inside_label",
+          "reasons": [],
+          "raw": "0.812",
+          "value": 0.812,
+          "unit": "",
+          "dim": "unknown",
+          "base": "unknown",
+          "base_value": 0.812,
+          "dim_source_status": "undeclared"
+        }
+      ],
+      "warnings": [],
+      "stance": "unverified",
+      "reason_codes": [
+        "unknown_dimension"
+      ],
+      "computed": null,
+      "expected": null,
+      "delta": null,
+      "tolerance": "rel_5pct",
+      "basis": {
+        "preconditions": {
+          "input_binding": true,
+          "rule_applicable": true,
+          "tolerance_policy": true,
+          "computation_complete": false
+        },
+        "formula": "a − b",
+        "values": null
+      }
+    },
+    {
+      "id": "ck0003",
+      "kind": "cross_reference",
+      "operator": "agree",
+      "scope": "rubric_item",
+      "rubric_item_id": "R2.1",
+      "claim": {
+        "ref": {
+          "bundle_id": "ev0005",
+          "span_index": 0
+        },
+        "span_offset": {
+          "start": 832,
+          "end": 884
+        },
+        "span_structured": true,
+        "source_ref": {
+          "file": "report.pdf",
+          "sha256": "a2ffb76c203c6fe2da648201cf9f8f8009946f7ec3f03fb72247d8c5683342e6",
+          "page": 2,
+          "entry": "e0022"
+        },
+        "ok": true,
+        "selection": "unambiguous",
+        "quote": "数据增强进一步提升至 86.1%",
+        "offset": {
+          "start": 858,
+          "end": 874
+        },
+        "reasons": []
+      },
+      "operands": [
+        {
+          "ref": {
+            "bundle_id": "ev0005",
+            "span_index": 0
+          },
+          "span_offset": {
+            "start": 832,
+            "end": 884
+          },
+          "span_structured": true,
+          "source_ref": {
+            "file": "report.pdf",
+            "sha256": "a2ffb76c203c6fe2da648201cf9f8f8009946f7ec3f03fb72247d8c5683342e6",
+            "page": 2,
+            "entry": "e0022"
+          },
+          "ok": true,
+          "selection": "unambiguous",
+          "quote": "86.1%",
+          "offset": {
+            "start": 869,
+            "end": 874
+          },
+          "label": "数据增强进一步提升至 86.1%",
+          "label_offset": {
+            "start": 858,
+            "end": 874
+          },
+          "label_occurrences": 1,
+          "value_anchor": "inside_label",
+          "reasons": [],
+          "raw": "86.1",
+          "value": 86.1,
+          "unit": "%",
+          "dim": "ratio",
+          "base": "ratio",
+          "base_value": 0.861,
+          "dim_source_status": "inline"
+        },
+        {
+          "ref": {
+            "bundle_id": "ev0008",
+            "span_index": 2
+          },
+          "span_offset": {
+            "start": 749,
+            "end": 777
+          },
+          "span_structured": true,
+          "source_ref": {
+            "file": "report.pdf",
+            "sha256": "a2ffb76c203c6fe2da648201cf9f8f8009946f7ec3f03fb72247d8c5683342e6",
+            "page": 1,
+            "entry": "e0018"
+          },
+          "ok": true,
+          "selection": "unambiguous",
+          "quote": "0.861",
+          "offset": {
+            "start": 768,
+            "end": 773
+          },
+          "label": "+ attention + 数据增强 0.861 9.8",
+          "label_offset": {
+            "start": 749,
+            "end": 777
+          },
+          "label_occurrences": 1,
+          "value_anchor": "inside_label",
+          "reasons": [],
+          "raw": "0.861",
+          "value": 0.861,
+          "unit": "",
+          "dim": "ratio",
+          "base": "ratio",
+          "base_value": 0.861,
+          "dim_source": {
+            "quote": "验证准确率",
+            "offset": {
+              "start": 692,
+              "end": 697
+            },
+            "dim": "ratio",
+            "via": "keyword",
+            "marker": "准确率"
+          },
+          "dim_source_status": "cited"
+        }
+      ],
+      "warnings": [],
+      "stance": "pass",
+      "reason_codes": [],
+      "computed": {
+        "value": 0,
+        "dim": "ratio"
+      },
+      "expected": {
+        "value": 0,
+        "dim": "bool",
+        "origin": "rule_constant",
+        "rule": "agree 的期望由算子自身定义（恒为 0），不来自材料"
+      },
+      "delta": {
+        "abs": 0,
+        "tolerance": {
+          "kind": "abs",
+          "value": 0.001
+        }
+      },
+      "tolerance": "abs_1e_3",
+      "basis": {
+        "preconditions": {
+          "input_binding": true,
+          "rule_applicable": true,
+          "tolerance_policy": true,
+          "computation_complete": true
+        },
+        "formula": "|a − b| ≤ 容差",
+        "values": [
+          0.861,
+          0.861
+        ],
+        "expected_origin": "rule_constant"
+      }
+    },
+    {
+      "id": "ck0004",
+      "kind": "unit_check",
+      "operator": "unit_consistent",
+      "scope": "rubric_item",
+      "rubric_item_id": "R2.1",
+      "claim": {
+        "ref": {
+          "bundle_id": "ev0005",
+          "span_index": 0
+        },
+        "span_offset": {
+          "start": 832,
+          "end": 884
+        },
+        "span_structured": true,
+        "source_ref": {
+          "file": "report.pdf",
+          "sha256": "a2ffb76c203c6fe2da648201cf9f8f8009946f7ec3f03fb72247d8c5683342e6",
+          "page": 2,
+          "entry": "e0022"
+        },
+        "ok": true,
+        "selection": "unambiguous",
+        "quote": "注意力模块带来约 3.5 个百分点的提升",
+        "offset": {
+          "start": 836,
+          "end": 856
+        },
+        "reasons": []
+      },
+      "operands": [
+        {
+          "ref": {
+            "bundle_id": "ev0008",
+            "span_index": 1
+          },
+          "span_offset": {
+            "start": 727,
+            "end": 748
+          },
+          "span_structured": true,
+          "source_ref": {
+            "file": "report.pdf",
+            "sha256": "a2ffb76c203c6fe2da648201cf9f8f8009946f7ec3f03fb72247d8c5683342e6",
+            "page": 1,
+            "entry": "e0018"
+          },
+          "ok": true,
+          "selection": "unambiguous",
+          "quote": "0.847",
+          "offset": {
+            "start": 739,
+            "end": 744
+          },
+          "label": "+ attention 0.847 7.1",
+          "label_offset": {
+            "start": 727,
+            "end": 748
+          },
+          "label_occurrences": 1,
+          "value_anchor": "inside_label",
+          "reasons": [],
+          "raw": "0.847",
+          "value": 0.847,
+          "unit": "",
+          "dim": "unknown",
+          "base": "unknown",
+          "base_value": 0.847,
+          "dim_source_status": "undeclared"
+        },
+        {
+          "ref": {
+            "bundle_id": "ev0008",
+            "span_index": 0
+          },
+          "span_offset": {
+            "start": 708,
+            "end": 726
+          },
+          "span_structured": true,
+          "source_ref": {
+            "file": "report.pdf",
+            "sha256": "a2ffb76c203c6fe2da648201cf9f8f8009946f7ec3f03fb72247d8c5683342e6",
+            "page": 1,
+            "entry": "e0018"
+          },
+          "ok": true,
+          "selection": "unambiguous",
+          "quote": "0.812",
+          "offset": {
+            "start": 717,
+            "end": 722
+          },
+          "label": "baseline 0.812 6.4",
+          "label_offset": {
+            "start": 708,
+            "end": 726
+          },
+          "label_occurrences": 1,
+          "value_anchor": "inside_label",
+          "reasons": [],
+          "raw": "0.812",
+          "value": 0.812,
+          "unit": "",
+          "dim": "unknown",
+          "base": "unknown",
+          "base_value": 0.812,
+          "dim_source_status": "undeclared"
+        },
+        {
+          "ref": {
+            "bundle_id": "ev0005",
+            "span_index": 0
+          },
+          "span_offset": {
+            "start": 832,
+            "end": 884
+          },
+          "span_structured": true,
+          "source_ref": {
+            "file": "report.pdf",
+            "sha256": "a2ffb76c203c6fe2da648201cf9f8f8009946f7ec3f03fb72247d8c5683342e6",
+            "page": 2,
+            "entry": "e0022"
+          },
+          "ok": true,
+          "selection": "unambiguous",
+          "quote": "3.5 个百分点",
+          "offset": {
+            "start": 845,
+            "end": 853
+          },
+          "label": "约 3.5 个百分点",
+          "label_offset": {
+            "start": 843,
+            "end": 853
+          },
+          "label_occurrences": 1,
+          "value_anchor": "inside_label",
+          "reasons": [],
+          "raw": "3.5",
+          "value": 3.5,
+          "unit": "个百分点",
+          "dim": "ratio",
+          "base": "ratio",
+          "base_value": 0.035,
+          "dim_source_status": "inline"
+        }
+      ],
+      "warnings": [],
+      "stance": "unverified",
+      "reason_codes": [
+        "all_dims_undeclared"
+      ],
+      "computed": null,
+      "expected": null,
+      "delta": null,
+      "tolerance": "exact",
+      "basis": {
+        "preconditions": {
+          "input_binding": true,
+          "rule_applicable": true,
+          "tolerance_policy": true,
+          "computation_complete": false
+        },
+        "formula": "量纲集合的势 = 1",
+        "values": null
+      }
+    },
+    {
+      "id": "ck0005",
+      "kind": "numeric_recompute",
+      "operator": "difference",
+      "scope": "rubric_item",
+      "rubric_item_id": "R2.1",
+      "claim": {
+        "ref": {
+          "bundle_id": "ev0005",
+          "span_index": 0
+        },
+        "span_offset": {
+          "start": 832,
+          "end": 884
+        },
+        "span_structured": true,
+        "source_ref": {
+          "file": "report.pdf",
+          "sha256": "a2ffb76c203c6fe2da648201cf9f8f8009946f7ec3f03fb72247d8c5683342e6",
+          "page": 2,
+          "entry": "e0022"
+        },
+        "ok": true,
+        "selection": "unambiguous",
+        "quote": "注意力模块带来约 3.5 个百分点的提升",
+        "offset": {
+          "start": 836,
+          "end": 856
+        },
+        "reasons": []
+      },
+      "operands": [
+        {
+          "ref": {
+            "bundle_id": "ev0008",
+            "span_index": 1
+          },
+          "span_offset": {
+            "start": 727,
+            "end": 748
+          },
+          "span_structured": true,
+          "source_ref": {
+            "file": "report.pdf",
+            "sha256": "a2ffb76c203c6fe2da648201cf9f8f8009946f7ec3f03fb72247d8c5683342e6",
+            "page": 1,
+            "entry": "e0018"
+          },
+          "ok": true,
+          "selection": "ambiguous",
+          "quote": "0.847",
+          "offset": {
+            "start": 739,
+            "end": 744
+          },
+          "label": "+ attention",
+          "label_offset": {
+            "start": 727,
+            "end": 738
+          },
+          "label_occurrences": 2,
+          "value_anchor": "after_label",
+          "reasons": [],
+          "raw": "0.847",
+          "value": 0.847,
+          "unit": "",
+          "dim": "unknown",
+          "base": "unknown",
+          "base_value": 0.847,
+          "dim_source_status": "undeclared"
+        },
+        {
+          "ref": {
+            "bundle_id": "ev0008",
+            "span_index": 0
+          },
+          "span_offset": {
+            "start": 708,
+            "end": 726
+          },
+          "span_structured": true,
+          "source_ref": {
+            "file": "report.pdf",
+            "sha256": "a2ffb76c203c6fe2da648201cf9f8f8009946f7ec3f03fb72247d8c5683342e6",
+            "page": 1,
+            "entry": "e0018"
+          },
+          "ok": true,
+          "selection": "unambiguous",
+          "quote": "0.812",
+          "offset": {
+            "start": 717,
+            "end": 722
+          },
+          "label": "baseline 0.812 6.4",
+          "label_offset": {
+            "start": 708,
+            "end": 726
+          },
+          "label_occurrences": 1,
+          "value_anchor": "inside_label",
+          "reasons": [],
+          "raw": "0.812",
+          "value": 0.812,
+          "unit": "",
+          "dim": "ratio",
+          "base": "ratio",
+          "base_value": 0.812,
+          "dim_source": {
+            "quote": "验证准确率",
+            "offset": {
+              "start": 692,
+              "end": 697
+            },
+            "dim": "ratio",
+            "via": "keyword",
+            "marker": "准确率"
+          },
+          "dim_source_status": "cited"
+        }
+      ],
+      "warnings": [
+        "「+ attention」在去重后的候选空间里出现 2 次，无法唯一确定对象"
+      ],
+      "stance": "unverified",
+      "reason_codes": [
+        "ambiguous_operand_selection"
+      ],
+      "computed": null,
+      "expected": null,
+      "delta": null,
+      "tolerance": "rel_5pct",
+      "basis": {
+        "preconditions": {
+          "input_binding": false,
+          "rule_applicable": true,
+          "tolerance_policy": true,
+          "computation_complete": false
+        },
+        "formula": "a − b",
+        "values": null
+      }
+    },
+    {
+      "id": "ck0006",
+      "kind": "numeric_recompute",
+      "operator": "difference",
+      "scope": "rubric_item",
+      "rubric_item_id": "R2.1",
+      "claim": {
+        "ref": {
+          "bundle_id": "ev0005",
+          "span_index": 0
+        },
+        "span_offset": {
+          "start": 832,
+          "end": 884
+        },
+        "span_structured": true,
+        "source_ref": {
+          "file": "report.pdf",
+          "sha256": "a2ffb76c203c6fe2da648201cf9f8f8009946f7ec3f03fb72247d8c5683342e6",
+          "page": 2,
+          "entry": "e0022"
+        },
+        "ok": true,
+        "selection": "unambiguous",
+        "quote": "注意力模块带来约 3.5 个百分点的提升",
+        "offset": {
+          "start": 836,
+          "end": 856
+        },
+        "reasons": []
+      },
+      "operands": [
+        {
+          "ok": false,
+          "selection": "not_found",
+          "quote": "0.847",
+          "raw": "0.847",
+          "label": "注意力模块",
+          "label_occurrences": null,
+          "reasons": [
+            "operand_quote_not_in_declared_span"
+          ],
+          "ref": {
+            "bundle_id": "ev0005",
+            "span_index": 0
+          },
+          "span_offset": {
+            "start": 832,
+            "end": 884
+          },
+          "span_structured": true,
+          "source_ref": {
+            "file": "report.pdf",
+            "sha256": "a2ffb76c203c6fe2da648201cf9f8f8009946f7ec3f03fb72247d8c5683342e6",
+            "page": 2,
+            "entry": "e0022"
+          },
+          "label_offset": {
+            "start": 836,
+            "end": 841
+          },
+          "dim_source_status": "undeclared"
+        },
+        {
+          "ref": {
+            "bundle_id": "ev0008",
+            "span_index": 0
+          },
+          "span_offset": {
+            "start": 708,
+            "end": 726
+          },
+          "span_structured": true,
+          "source_ref": {
+            "file": "report.pdf",
+            "sha256": "a2ffb76c203c6fe2da648201cf9f8f8009946f7ec3f03fb72247d8c5683342e6",
+            "page": 1,
+            "entry": "e0018"
+          },
+          "ok": true,
+          "selection": "unambiguous",
+          "quote": "0.812",
+          "offset": {
+            "start": 717,
+            "end": 722
+          },
+          "label": "baseline 0.812 6.4",
+          "label_offset": {
+            "start": 708,
+            "end": 726
+          },
+          "label_occurrences": 1,
+          "value_anchor": "inside_label",
+          "reasons": [],
+          "raw": "0.812",
+          "value": 0.812,
+          "unit": "",
+          "dim": "ratio",
+          "base": "ratio",
+          "base_value": 0.812,
+          "dim_source": {
+            "quote": "验证准确率",
+            "offset": {
+              "start": 692,
+              "end": 697
+            },
+            "dim": "ratio",
+            "via": "keyword",
+            "marker": "准确率"
+          },
+          "dim_source_status": "cited"
+        }
+      ],
+      "warnings": [],
+      "stance": "unverified",
+      "reason_codes": [
+        "operand_quote_not_in_declared_span"
+      ],
+      "computed": null,
+      "expected": null,
+      "delta": null,
+      "tolerance": "rel_5pct",
+      "basis": {
+        "preconditions": {
+          "input_binding": false,
+          "rule_applicable": true,
+          "tolerance_policy": true,
+          "computation_complete": false
+        },
+        "formula": "a − b",
+        "values": null
+      }
+    },
+    {
+      "id": "ck0007",
+      "kind": "magnitude_sanity",
+      "operator": "range_in",
+      "scope": "rubric_item",
+      "rubric_item_id": "R2.1",
+      "claim": {
+        "ref": {
+          "bundle_id": "ev0005",
+          "span_index": 0
+        },
+        "span_offset": {
+          "start": 832,
+          "end": 884
+        },
+        "span_structured": true,
+        "source_ref": {
+          "file": "report.pdf",
+          "sha256": "a2ffb76c203c6fe2da648201cf9f8f8009946f7ec3f03fb72247d8c5683342e6",
+          "page": 2,
+          "entry": "e0022"
+        },
+        "ok": true,
+        "selection": "unambiguous",
+        "quote": "数据增强进一步提升至 86.1%",
+        "offset": {
+          "start": 858,
+          "end": 874
+        },
+        "reasons": []
+      },
+      "operands": [
+        {
+          "ref": {
+            "bundle_id": "ev0005",
+            "span_index": 0
+          },
+          "span_offset": {
+            "start": 832,
+            "end": 884
+          },
+          "span_structured": true,
+          "source_ref": {
+            "file": "report.pdf",
+            "sha256": "a2ffb76c203c6fe2da648201cf9f8f8009946f7ec3f03fb72247d8c5683342e6",
+            "page": 2,
+            "entry": "e0022"
+          },
+          "ok": true,
+          "selection": "unambiguous",
+          "quote": "86.1%",
+          "offset": {
+            "start": 869,
+            "end": 874
+          },
+          "label": "数据增强进一步提升至 86.1%",
+          "label_offset": {
+            "start": 858,
+            "end": 874
+          },
+          "label_occurrences": 1,
+          "value_anchor": "inside_label",
+          "reasons": [],
+          "raw": "86.1",
+          "value": 86.1,
+          "unit": "%",
+          "dim": "ratio",
+          "base": "ratio",
+          "base_value": 0.861,
+          "dim_source_status": "inline"
+        }
+      ],
+      "warnings": [],
+      "stance": "pass",
+      "reason_codes": [],
+      "computed": {
+        "value": 1,
+        "dim": "bool"
+      },
+      "expected": {
+        "value": 1,
+        "dim": "bool",
+        "origin": "rule_constant",
+        "rule": "range_in 的期望由算子自身定义（恒为 1），不来自材料"
+      },
+      "delta": {
+        "abs": 0,
+        "tolerance": {
+          "kind": "abs",
+          "value": 0
+        }
+      },
+      "tolerance": "exact",
+      "basis": {
+        "preconditions": {
+          "input_binding": true,
+          "rule_applicable": true,
+          "tolerance_policy": true,
+          "computation_complete": true
+        },
+        "formula": "lo ≤ a ≤ hi",
+        "values": [
+          0.861
+        ],
+        "expected_origin": "rule_constant"
+      }
+    },
+    {
+      "id": "ck0008",
+      "kind": "numeric_recompute",
+      "operator": "difference",
+      "scope": "rubric_item",
+      "rubric_item_id": "R2.1",
+      "claim": {
+        "ref": {
+          "bundle_id": "ev0005",
+          "span_index": 0
+        },
+        "span_offset": {
+          "start": 832,
+          "end": 884
+        },
+        "span_structured": true,
+        "source_ref": {
+          "file": "report.pdf",
+          "sha256": "a2ffb76c203c6fe2da648201cf9f8f8009946f7ec3f03fb72247d8c5683342e6",
+          "page": 2,
+          "entry": "e0022"
+        },
+        "ok": true,
+        "selection": "unambiguous",
+        "quote": "注意力模块带来约 3.5 个百分点的提升",
+        "offset": {
+          "start": 836,
+          "end": 856
+        },
+        "reasons": []
+      },
+      "operands": [
+        {
+          "ref": {
+            "bundle_id": "ev0002",
+            "span_index": 0
+          },
+          "span_offset": {
+            "start": 708,
+            "end": 777
+          },
+          "span_structured": false,
+          "source_ref": {
+            "file": "report.pdf",
+            "sha256": "a2ffb76c203c6fe2da648201cf9f8f8009946f7ec3f03fb72247d8c5683342e6",
+            "page": 1,
+            "entry": "e0018"
+          },
+          "ok": true,
+          "selection": "unambiguous",
+          "quote": "0.847",
+          "offset": {
+            "start": 739,
+            "end": 744
+          },
+          "label": "+ attention 0.847 7.1",
+          "label_offset": {
+            "start": 727,
+            "end": 748
+          },
+          "label_occurrences": 1,
+          "value_anchor": "inside_label",
+          "reasons": [],
+          "raw": "0.847",
+          "value": 0.847,
+          "unit": "",
+          "dim": "unknown",
+          "base": "unknown",
+          "base_value": 0.847,
+          "dim_source_status": "undeclared"
+        },
+        {
+          "ref": {
+            "bundle_id": "ev0002",
+            "span_index": 0
+          },
+          "span_offset": {
+            "start": 708,
+            "end": 777
+          },
+          "span_structured": false,
+          "source_ref": {
+            "file": "report.pdf",
+            "sha256": "a2ffb76c203c6fe2da648201cf9f8f8009946f7ec3f03fb72247d8c5683342e6",
+            "page": 1,
+            "entry": "e0018"
+          },
+          "ok": true,
+          "selection": "unambiguous",
+          "quote": "0.812",
+          "offset": {
+            "start": 717,
+            "end": 722
+          },
+          "label": "baseline 0.812 6.4",
+          "label_offset": {
+            "start": 708,
+            "end": 726
+          },
+          "label_occurrences": 1,
+          "value_anchor": "inside_label",
+          "reasons": [],
+          "raw": "0.812",
+          "value": 0.812,
+          "unit": "",
+          "dim": "unknown",
+          "base": "unknown",
+          "base_value": 0.812,
+          "dim_source_status": "undeclared"
+        }
+      ],
+      "warnings": [],
+      "stance": "unverified",
+      "reason_codes": [
+        "multiline_span_not_structured"
+      ],
+      "computed": null,
+      "expected": null,
+      "delta": null,
+      "tolerance": "rel_5pct",
+      "basis": {
+        "preconditions": {
+          "input_binding": false,
+          "rule_applicable": true,
+          "tolerance_policy": true,
+          "computation_complete": false
+        },
+        "formula": "a − b",
+        "values": null
+      }
+    },
+    {
+      "id": "ck0010",
+      "kind": "numeric_recompute",
+      "operator": "difference",
+      "scope": "rubric_item",
+      "rubric_item_id": "R2.1",
+      "claim": {
+        "ref": {
+          "bundle_id": "ev0005",
+          "span_index": 0
+        },
+        "span_offset": {
+          "start": 832,
+          "end": 884
+        },
+        "span_structured": true,
+        "source_ref": {
+          "file": "report.pdf",
+          "sha256": "a2ffb76c203c6fe2da648201cf9f8f8009946f7ec3f03fb72247d8c5683342e6",
+          "page": 2,
+          "entry": "e0022"
+        },
+        "ok": true,
+        "selection": "unambiguous",
+        "quote": "注意力模块带来约 3.5 个百分点的提升",
+        "offset": {
+          "start": 836,
+          "end": 856
+        },
+        "reasons": []
+      },
+      "operands": [
+        {
+          "ok": true,
+          "selection": "unambiguous",
+          "reasons": [],
+          "query": {
+            "table_id": "t0001",
+            "row_label": "+ attention",
+            "column": "验证准确率"
+          },
+          "query_source": "model_supplied",
+          "table_id": "t0001",
+          "value_anchor": "table_cell",
+          "structure_source": {
+            "origin": "l1_rule_parse",
+            "cell_split": "pdf_geometry",
+            "caption_entry": null,
+            "entry_range": "e0017-e0018"
+          },
+          "column_count": 3,
+          "row": {
+            "label": "+ attention",
+            "row_index": 1,
+            "cells": 3
+          },
+          "column": {
+            "header": "验证准确率",
+            "column_index": 1,
+            "offset": {
+              "start": 692,
+              "end": 697
+            }
+          },
+          "cell": {
+            "cell_id": "t0001:r2:c2",
+            "text": "0.847",
+            "offset": {
+              "start": 739,
+              "end": 744
+            }
+          },
+          "offset": {
+            "start": 739,
+            "end": 744
+          },
+          "quote": "0.847",
+          "unit_source": {
+            "quote": "验证准确率",
+            "offset": {
+              "start": 692,
+              "end": 697
+            },
+            "dim": "ratio",
+            "via": "keyword",
+            "marker": "准确率",
+            "from": "column_header",
+            "applies_to": "column"
+          },
+          "source_ref": {
+            "file": "report.pdf",
+            "sha256": "a2ffb76c203c6fe2da648201cf9f8f8009946f7ec3f03fb72247d8c5683342e6",
+            "page": 1,
+            "entry": "e0018"
+          },
+          "provenance": {
+            "query": "model_supplied",
+            "table_structure": "l1_rule_parse",
+            "cell_split": "pdf_geometry",
+            "unit": "column_header"
+          },
+          "dim_source_status": null,
+          "raw": "0.847",
+          "value": 0.847,
+          "unit": "",
+          "dim": "ratio",
+          "base": "ratio",
+          "base_value": 0.847,
+          "span_structured": true,
+          "dim_source": {
+            "quote": "验证准确率",
+            "offset": {
+              "start": 692,
+              "end": 697
+            },
+            "dim": "ratio",
+            "via": "keyword",
+            "marker": "准确率",
+            "from": "column_header",
+            "applies_to": "column"
+          }
+        },
+        {
+          "ok": true,
+          "selection": "unambiguous",
+          "reasons": [],
+          "query": {
+            "table_id": "t0001",
+            "row_label": "baseline",
+            "column": "验证准确率"
+          },
+          "query_source": "model_supplied",
+          "table_id": "t0001",
+          "value_anchor": "table_cell",
+          "structure_source": {
+            "origin": "l1_rule_parse",
+            "cell_split": "pdf_geometry",
+            "caption_entry": null,
+            "entry_range": "e0017-e0018"
+          },
+          "column_count": 3,
+          "row": {
+            "label": "baseline",
+            "row_index": 0,
+            "cells": 3
+          },
+          "column": {
+            "header": "验证准确率",
+            "column_index": 1,
+            "offset": {
+              "start": 692,
+              "end": 697
+            }
+          },
+          "cell": {
+            "cell_id": "t0001:r1:c2",
+            "text": "0.812",
+            "offset": {
+              "start": 717,
+              "end": 722
+            }
+          },
+          "offset": {
+            "start": 717,
+            "end": 722
+          },
+          "quote": "0.812",
+          "unit_source": {
+            "quote": "验证准确率",
+            "offset": {
+              "start": 692,
+              "end": 697
+            },
+            "dim": "ratio",
+            "via": "keyword",
+            "marker": "准确率",
+            "from": "column_header",
+            "applies_to": "column"
+          },
+          "source_ref": {
+            "file": "report.pdf",
+            "sha256": "a2ffb76c203c6fe2da648201cf9f8f8009946f7ec3f03fb72247d8c5683342e6",
+            "page": 1,
+            "entry": "e0018"
+          },
+          "provenance": {
+            "query": "model_supplied",
+            "table_structure": "l1_rule_parse",
+            "cell_split": "pdf_geometry",
+            "unit": "column_header"
+          },
+          "dim_source_status": null,
+          "raw": "0.812",
+          "value": 0.812,
+          "unit": "",
+          "dim": "ratio",
+          "base": "ratio",
+          "base_value": 0.812,
+          "span_structured": true,
+          "dim_source": {
+            "quote": "验证准确率",
+            "offset": {
+              "start": 692,
+              "end": 697
+            },
+            "dim": "ratio",
+            "via": "keyword",
+            "marker": "准确率",
+            "from": "column_header",
+            "applies_to": "column"
+          }
+        }
+      ],
+      "warnings": [],
+      "stance": "pass",
+      "reason_codes": [],
+      "computed": {
+        "value": 0.03499999999999992,
+        "dim": "ratio"
+      },
+      "expected": {
+        "value": 0.035,
+        "dim": "ratio",
+        "origin": "source_bound",
+        "offset": {
+          "start": 845,
+          "end": 853
+        },
+        "source_ref": {
+          "file": "report.pdf",
+          "sha256": "a2ffb76c203c6fe2da648201cf9f8f8009946f7ec3f03fb72247d8c5683342e6",
+          "page": 2,
+          "entry": "e0022"
+        },
+        "selection": "unambiguous",
+        "value_anchor": "inside_label",
+        "dim_source_status": "inline",
+        "quote": "3.5 个百分点",
+        "raw": "3.5",
+        "unit": "个百分点"
+      },
+      "delta": {
+        "abs": 8.326672684688674e-17,
+        "tolerance": {
+          "kind": "rel",
+          "value": 0.05
+        }
+      },
+      "tolerance": "rel_5pct",
+      "basis": {
+        "preconditions": {
+          "input_binding": true,
+          "rule_applicable": true,
+          "tolerance_policy": true,
+          "computation_complete": true
+        },
+        "formula": "a − b",
+        "values": [
+          0.847,
+          0.812
+        ],
+        "expected_origin": "source_bound"
+      }
+    },
+    {
+      "id": "ck0011",
+      "kind": "numeric_recompute",
+      "operator": "difference",
+      "scope": "rubric_item",
+      "rubric_item_id": "R2.1",
+      "claim": {
+        "ref": {
+          "bundle_id": "ev0005",
+          "span_index": 0
+        },
+        "span_offset": {
+          "start": 832,
+          "end": 884
+        },
+        "span_structured": true,
+        "source_ref": {
+          "file": "report.pdf",
+          "sha256": "a2ffb76c203c6fe2da648201cf9f8f8009946f7ec3f03fb72247d8c5683342e6",
+          "page": 2,
+          "entry": "e0022"
+        },
+        "ok": true,
+        "selection": "unambiguous",
+        "quote": "注意力模块带来约 3.5 个百分点的提升",
+        "offset": {
+          "start": 836,
+          "end": 856
+        },
+        "reasons": []
+      },
+      "operands": [
+        {
+          "ok": false,
+          "selection": "not_found",
+          "reasons": [
+            "table_not_found"
+          ],
+          "query": {
+            "table_id": "t0099",
+            "row_label": "+ attention",
+            "column": "验证准确率"
+          },
+          "query_source": "model_supplied",
+          "table_id": "t0099",
+          "value_anchor": "table_cell",
+          "dim_source_status": null
+        },
+        {
+          "ok": true,
+          "selection": "unambiguous",
+          "reasons": [],
+          "query": {
+            "table_id": "t0001",
+            "row_label": "baseline",
+            "column": "验证准确率"
+          },
+          "query_source": "model_supplied",
+          "table_id": "t0001",
+          "value_anchor": "table_cell",
+          "structure_source": {
+            "origin": "l1_rule_parse",
+            "cell_split": "pdf_geometry",
+            "caption_entry": null,
+            "entry_range": "e0017-e0018"
+          },
+          "column_count": 3,
+          "row": {
+            "label": "baseline",
+            "row_index": 0,
+            "cells": 3
+          },
+          "column": {
+            "header": "验证准确率",
+            "column_index": 1,
+            "offset": {
+              "start": 692,
+              "end": 697
+            }
+          },
+          "cell": {
+            "cell_id": "t0001:r1:c2",
+            "text": "0.812",
+            "offset": {
+              "start": 717,
+              "end": 722
+            }
+          },
+          "offset": {
+            "start": 717,
+            "end": 722
+          },
+          "quote": "0.812",
+          "unit_source": {
+            "quote": "验证准确率",
+            "offset": {
+              "start": 692,
+              "end": 697
+            },
+            "dim": "ratio",
+            "via": "keyword",
+            "marker": "准确率",
+            "from": "column_header",
+            "applies_to": "column"
+          },
+          "source_ref": {
+            "file": "report.pdf",
+            "sha256": "a2ffb76c203c6fe2da648201cf9f8f8009946f7ec3f03fb72247d8c5683342e6",
+            "page": 1,
+            "entry": "e0018"
+          },
+          "provenance": {
+            "query": "model_supplied",
+            "table_structure": "l1_rule_parse",
+            "cell_split": "pdf_geometry",
+            "unit": "column_header"
+          },
+          "dim_source_status": null,
+          "raw": "0.812",
+          "value": 0.812,
+          "unit": "",
+          "dim": "ratio",
+          "base": "ratio",
+          "base_value": 0.812,
+          "span_structured": true,
+          "dim_source": {
+            "quote": "验证准确率",
+            "offset": {
+              "start": 692,
+              "end": 697
+            },
+            "dim": "ratio",
+            "via": "keyword",
+            "marker": "准确率",
+            "from": "column_header",
+            "applies_to": "column"
+          }
+        }
+      ],
+      "warnings": [],
+      "stance": "unverified",
+      "reason_codes": [
+        "table_not_found"
+      ],
+      "computed": null,
+      "expected": null,
+      "delta": null,
+      "tolerance": "rel_5pct",
+      "basis": {
+        "preconditions": {
+          "input_binding": false,
+          "rule_applicable": true,
+          "tolerance_policy": true,
+          "computation_complete": false
+        },
+        "formula": "a − b",
+        "values": null
+      }
+    },
+    {
+      "id": "ck0012",
+      "kind": "numeric_recompute",
+      "operator": "difference",
+      "scope": "rubric_item",
+      "rubric_item_id": "R2.1",
+      "claim": {
+        "ref": {
+          "bundle_id": "ev0005",
+          "span_index": 0
+        },
+        "span_offset": {
+          "start": 832,
+          "end": 884
+        },
+        "span_structured": true,
+        "source_ref": {
+          "file": "report.pdf",
+          "sha256": "a2ffb76c203c6fe2da648201cf9f8f8009946f7ec3f03fb72247d8c5683342e6",
+          "page": 2,
+          "entry": "e0022"
+        },
+        "ok": true,
+        "selection": "unambiguous",
+        "quote": "注意力模块带来约 3.5 个百分点的提升",
+        "offset": {
+          "start": 836,
+          "end": 856
+        },
+        "reasons": []
+      },
+      "operands": [
+        {
+          "ok": false,
+          "selection": "not_found",
+          "reasons": [
+            "column_not_found"
+          ],
+          "query": {
+            "table_id": "t0001",
+            "row_label": "+ attention",
+            "column": "准确率"
+          },
+          "query_source": "model_supplied",
+          "table_id": "t0001",
+          "value_anchor": "table_cell",
+          "structure_source": {
+            "origin": "l1_rule_parse",
+            "cell_split": "pdf_geometry",
+            "caption_entry": null,
+            "entry_range": "e0017-e0018"
+          },
+          "columns": [
+            "配置",
+            "验证准确率",
+            "训练时长(min)"
+          ],
+          "dim_source_status": null
+        },
+        {
+          "ok": true,
+          "selection": "unambiguous",
+          "reasons": [],
+          "query": {
+            "table_id": "t0001",
+            "row_label": "baseline",
+            "column": "验证准确率"
+          },
+          "query_source": "model_supplied",
+          "table_id": "t0001",
+          "value_anchor": "table_cell",
+          "structure_source": {
+            "origin": "l1_rule_parse",
+            "cell_split": "pdf_geometry",
+            "caption_entry": null,
+            "entry_range": "e0017-e0018"
+          },
+          "column_count": 3,
+          "row": {
+            "label": "baseline",
+            "row_index": 0,
+            "cells": 3
+          },
+          "column": {
+            "header": "验证准确率",
+            "column_index": 1,
+            "offset": {
+              "start": 692,
+              "end": 697
+            }
+          },
+          "cell": {
+            "cell_id": "t0001:r1:c2",
+            "text": "0.812",
+            "offset": {
+              "start": 717,
+              "end": 722
+            }
+          },
+          "offset": {
+            "start": 717,
+            "end": 722
+          },
+          "quote": "0.812",
+          "unit_source": {
+            "quote": "验证准确率",
+            "offset": {
+              "start": 692,
+              "end": 697
+            },
+            "dim": "ratio",
+            "via": "keyword",
+            "marker": "准确率",
+            "from": "column_header",
+            "applies_to": "column"
+          },
+          "source_ref": {
+            "file": "report.pdf",
+            "sha256": "a2ffb76c203c6fe2da648201cf9f8f8009946f7ec3f03fb72247d8c5683342e6",
+            "page": 1,
+            "entry": "e0018"
+          },
+          "provenance": {
+            "query": "model_supplied",
+            "table_structure": "l1_rule_parse",
+            "cell_split": "pdf_geometry",
+            "unit": "column_header"
+          },
+          "dim_source_status": null,
+          "raw": "0.812",
+          "value": 0.812,
+          "unit": "",
+          "dim": "ratio",
+          "base": "ratio",
+          "base_value": 0.812,
+          "span_structured": true,
+          "dim_source": {
+            "quote": "验证准确率",
+            "offset": {
+              "start": 692,
+              "end": 697
+            },
+            "dim": "ratio",
+            "via": "keyword",
+            "marker": "准确率",
+            "from": "column_header",
+            "applies_to": "column"
+          }
+        }
+      ],
+      "warnings": [],
+      "stance": "unverified",
+      "reason_codes": [
+        "column_not_found"
+      ],
+      "computed": null,
+      "expected": null,
+      "delta": null,
+      "tolerance": "rel_5pct",
+      "basis": {
+        "preconditions": {
+          "input_binding": false,
+          "rule_applicable": true,
+          "tolerance_policy": true,
+          "computation_complete": false
+        },
+        "formula": "a − b",
+        "values": null
+      }
+    },
+    {
+      "id": "ck0009",
+      "kind": "numbering",
+      "operator": "equals_text",
+      "scope": "rubric_item",
+      "rubric_item_id": "R2.2",
+      "claim": {
+        "ref": {
+          "bundle_id": "ev0003",
+          "span_index": 0
+        },
+        "span_offset": {
+          "start": 544,
+          "end": 561
+        },
+        "span_structured": true,
+        "source_ref": {
+          "file": "report.pdf",
+          "sha256": "a2ffb76c203c6fe2da648201cf9f8f8009946f7ec3f03fb72247d8c5683342e6",
+          "page": 1,
+          "entry": "e0013"
+        },
+        "ok": true,
+        "selection": "unambiguous",
+        "quote": "图 3 不同学习率下的验证损失曲线",
+        "offset": {
+          "start": 544,
+          "end": 561
+        },
+        "reasons": []
+      },
+      "operands": [
+        {
+          "ref": {
+            "bundle_id": "ev0003",
+            "span_index": 0
+          },
+          "span_offset": {
+            "start": 544,
+            "end": 561
+          },
+          "span_structured": true,
+          "source_ref": {
+            "file": "report.pdf",
+            "sha256": "a2ffb76c203c6fe2da648201cf9f8f8009946f7ec3f03fb72247d8c5683342e6",
+            "page": 1,
+            "entry": "e0013"
+          },
+          "ok": true,
+          "selection": "unambiguous",
+          "quote": "图 3 不同学习率下的验证损失曲线",
+          "offset": {
+            "start": 544,
+            "end": 561
+          },
+          "label": "图 3 不同学习率下的验证损失曲线",
+          "label_offset": {
+            "start": 544,
+            "end": 561
+          },
+          "label_occurrences": 1,
+          "value_anchor": "inside_label",
+          "reasons": [],
+          "raw": "图 3 不同学习率下的验证损失曲线",
+          "dim_source_status": null
+        },
+        {
+          "ref": {
+            "bundle_id": "ev0001",
+            "span_index": 1
+          },
+          "span_offset": {
+            "start": 544,
+            "end": 561
+          },
+          "span_structured": true,
+          "source_ref": {
+            "file": "report.pdf",
+            "sha256": "a2ffb76c203c6fe2da648201cf9f8f8009946f7ec3f03fb72247d8c5683342e6",
+            "page": 1,
+            "entry": "e0013"
+          },
+          "ok": true,
+          "selection": "unambiguous",
+          "quote": "图 3 不同学习率下的验证损失曲线",
+          "offset": {
+            "start": 544,
+            "end": 561
+          },
+          "label": "图 3 不同学习率下的验证损失曲线",
+          "label_offset": {
+            "start": 544,
+            "end": 561
+          },
+          "label_occurrences": 1,
+          "value_anchor": "inside_label",
+          "reasons": [],
+          "raw": "图 3 不同学习率下的验证损失曲线",
+          "dim_source_status": null
+        }
+      ],
+      "warnings": [],
+      "stance": "pass",
+      "reason_codes": [],
+      "computed": {
+        "value": 1,
+        "dim": "bool"
+      },
+      "expected": {
+        "value": 1,
+        "dim": "bool",
+        "origin": "rule_constant",
+        "rule": "equals_text 的期望由算子自身定义（恒为 1），不来自材料"
+      },
+      "delta": {
+        "abs": 0,
+        "tolerance": {
+          "kind": "abs",
+          "value": 0
+        }
+      },
+      "tolerance": "exact",
+      "basis": {
+        "preconditions": {
+          "input_binding": true,
+          "rule_applicable": true,
+          "tolerance_policy": true,
+          "computation_complete": true
+        },
+        "formula": "a ≡ b（逐字）",
+        "values": [],
+        "expected_origin": "rule_constant"
+      }
+    }
+  ],
+  "diagnostics": {
+    "diagnostic_only": true,
+    "notice": "★ pass / fail 的计数不得映射为任何分数：验证只覆盖可机械判定的那一小部分。unverified 的成因已归类 —— unknown_dimension 与 all_dims_undeclared 指向同一件事：「没写单位」被判成 unknown 而不是无量纲，所以同维运算与单位检查都做不了；multiline_span_not_structured 指向跨行的**非结构化**片段（L1 已能还原的行不再属于这一类）。表格通道消掉的是**定位**歧义：ck0010 完全不碰 span 也能取到数；但 ck0012 说明**选对业务对象仍由模型负责** —— 列名写错就是零匹配，程序不会替它猜。 注意：本样本未覆盖的检查种类有 internal_consistency —— 不做假样例凑数。",
+    "counts": {
+      "pass": 5,
+      "fail": 0,
+      "unverified": 7
+    },
+    "by_kind": {
+      "numeric_recompute": 8,
+      "cross_reference": 1,
+      "unit_check": 1,
+      "magnitude_sanity": 1,
+      "numbering": 1
+    },
+    "unverified_reasons": [
+      {
+        "reason": "all_dims_undeclared",
+        "count": 1
+      },
+      {
+        "reason": "ambiguous_operand_selection",
+        "count": 1
+      },
+      {
+        "reason": "column_not_found",
+        "count": 1
+      },
+      {
+        "reason": "multiline_span_not_structured",
+        "count": 1
+      },
+      {
+        "reason": "operand_quote_not_in_declared_span",
+        "count": 1
+      },
+      {
+        "reason": "table_not_found",
+        "count": 1
+      },
+      {
+        "reason": "unknown_dimension",
+        "count": 1
+      }
+    ],
+    "fail_precondition_status": [],
+    "not_scoring": "L3 不评分。验证结论只描述「机械检查成立与否」，不描述学生表现。"
+  }
+}

@@ -1,0 +1,109 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://autograder.local/schemas/rubric-assessment-profile.schema.json",
+  "title": "RubricAssessmentProfile",
+  "description": "★ L4 的**执行配置** —— 它不是教师 rubric，也不改教师 rubric 的一个字节。把「哪些条目可评分 / 怎么给分 / 父项怎么聚合」这类系统执行策略从冻结的 canonical rubric 里分出来单独版本化。绑定链：rubric(source_sha256) → profile(自身 sha256) → assessment。**原始 rubric 字节变 → L2/L3/L4 全部失效；profile 变 → 只失效 L4 及以后。** 这样既保住哈希链，也不把派生执行策略伪装成教师原始标准。",
+  "type": "object",
+  "required": ["profile_id", "version", "status", "rubric", "items"],
+  "additionalProperties": false,
+  "properties": {
+    "profile_id": { "type": "string", "pattern": "^rap_[a-z0-9_]+$" },
+    "version": { "type": "integer", "minimum": 1 },
+    "status": {
+      "type": "string", "enum": ["provisional_test", "teacher_confirmed", "retired"],
+      "description": "provisional_test = 用测试 rubric 造的临时配置，**不是**教师 gold；拿到教师真 rubric 后另建正式 profile"
+    },
+    "notes": { "type": "string" },
+    "rubric": {
+      "type": "object",
+      "description": "来源声明：profile 只对**这一个** rubric 有效（source_sha256 不等即失效）",
+      "required": ["rubric_id", "source_sha256"],
+      "additionalProperties": false,
+      "properties": {
+        "rubric_id": { "type": "string" },
+        "source_sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$", "description": "canonical rubric 里保存的**原始 rubric 文件**哈希（source.sha256）—— 不是 canonical json 自身的哈希" }
+      }
+    },
+    "items": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/item" } }
+  },
+  "$defs": {
+    "sourceRef": {
+      "type": "object",
+      "description": "★ 评分策略的出处：必须能逐字切回 rubric 原件（切片 === 那段原文）。分值/等级描述不许凭空发明，只许指回原文里写着它的那一处",
+      "required": ["file", "start", "end"],
+      "additionalProperties": false,
+      "properties": {
+        "file": { "type": "string" },
+        "sha256": { "type": "string", "description": "可选：原件哈希（多个 part 的 rubric 里，条目出自哪个 part 更清楚）" },
+        "start": { "type": "integer", "minimum": 0 },
+        "end": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "strategy": {
+      "type": "object",
+      "description": "三种策略，全部**限定取值**，不允许 L4 自己发明等级 / 权重 / 分数映射",
+      "required": ["type"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "type": "string", "enum": ["points", "levels", "binary"] },
+        "min": { "type": "integer", "minimum": 0, "description": "points：下界" },
+        "max": { "type": "integer", "minimum": 0, "description": "points：上界（来自 rubric 原文写的分值）" },
+        "step": { "type": "integer", "minimum": 1, "description": "points：步长；(max-min) 必须能被 step 整除" },
+        "levels": {
+          "type": "array", "minItems": 1,
+          "description": "levels：只能选 rubric 原件里已定义的等级，且每个等级必须带它对应的分值",
+          "items": {
+            "type": "object", "required": ["level_id", "score"], "additionalProperties": false,
+            "properties": {
+              "level_id": { "type": "string" },
+              "score": { "type": "integer", "minimum": 0 },
+              "text": { "type": "string", "description": "★ 该等级的**原文描述**（逐字来自 rubric 原件）。描述本身就是标准，不给模型看等于让它自己编。" },
+              "source_ref": { "$ref": "#/$defs/sourceRef" }
+            }
+          }
+        },
+        "criteria": {
+          "type": "array", "minItems": 1,
+          "description": "★ points 策略的另一种形态：rubric 原件把该维度的标准写成**若干条项 + 各自分值**（如「1) 讨论了至少一个随机误差 (1 point)」）。此时 max 必须 = 各项之和，模型只需逐条判断是否满足。",
+          "items": {
+            "type": "object", "required": ["text", "points"], "additionalProperties": false,
+            "properties": {
+              "text": { "type": "string", "description": "条项原文（逐字）" },
+              "points": { "type": "integer", "minimum": 0 }
+            }
+          }
+        },
+        "satisfied": { "type": "integer", "minimum": 0, "description": "binary：satisfied 对应多少分" },
+        "not_satisfied": { "type": "integer", "minimum": 0, "description": "binary：not_satisfied 对应多少分" }
+      }
+    },
+    "item": {
+      "type": "object",
+      "required": ["rubric_item_id", "scorable"],
+      "additionalProperties": false,
+      "properties": {
+        "rubric_item_id": { "type": "string" },
+        "scorable": { "type": "boolean", "description": "true = 可评分叶子（L4 只给这些生成 assessment）；false = 父项，分数由程序聚合" },
+        "scoring_strategy": { "$ref": "#/$defs/strategy" },
+        "strategy_source_ref": { "$ref": "#/$defs/sourceRef" },
+        "aggregation": {
+          "type": "object",
+          "description": "父项的聚合方式。比赛版只有 sum_children（由程序执行，模型不参与）",
+          "required": ["type", "children"],
+          "additionalProperties": false,
+          "properties": {
+            "type": { "type": "string", "enum": ["sum_children"] },
+            "children": { "type": "array", "minItems": 1, "items": { "type": "string" } }
+          }
+        }
+      },
+      "allOf": [
+        {
+          "if": { "type": "object", "required": ["scorable"], "properties": { "scorable": { "const": true } } },
+          "then": { "type": "object", "required": ["scoring_strategy", "strategy_source_ref"] },
+          "else": { "type": "object", "required": ["aggregation"] }
+        }
+      ]
+    }
+  }
+}

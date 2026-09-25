@@ -1,0 +1,918 @@
+{
+  "authority": {
+    "scoring_authority": "rubric",
+    "rubric_immutable": true,
+    "rubric_sha256": "a92d116d289113d6567d08950c3f4b540ea8dc239fbcc99ed9346dc8e2978782",
+    "plan_participates_in_scoring": false,
+    "notes": "评分权威只有教师上传的原始 rubric；retrieval plan 与候选证据都不参与评分"
+  },
+  "doc": {
+    "name": "report.pdf",
+    "sha256": "a2ffb76c203c6fe2da648201cf9f8f8009946f7ec3f03fb72247d8c5683342e6",
+    "text_file": "report.pdf.txt",
+    "index_file": "report.pdf.index.json",
+    "chars": 3448
+  },
+  "rubric": {
+    "rubric_id": "rb_lab2_v1",
+    "sha256": "a92d116d289113d6567d08950c3f4b540ea8dc239fbcc99ed9346dc8e2978782",
+    "file": "canonical-rubric.example.json",
+    "frozen_at": "2026-09-22T22:55:00+08:00"
+  },
+  "retrieval_plan": {
+    "plan_id": "rp_lab2",
+    "version": 2,
+    "batch_id": "b2026-10-lab2",
+    "sha256": "1a82135ace75a9ad2f7430fdfa1ae4070211de0327fe323b79e10f02debdd4d1",
+    "file": "retrieval-plan.example.json",
+    "pinned": true
+  },
+  "evidence": [
+    {
+      "id": "ev0001",
+      "rubric_item_id": "R2.1",
+      "facet_id": "F2",
+      "spans": [
+        {
+          "quote": "三组学习率下验证损失的下降曲线如图所示。",
+          "source_ref": {
+            "file": "report.pdf",
+            "sha256": "a2ffb76c203c6fe2da648201cf9f8f8009946f7ec3f03fb72247d8c5683342e6",
+            "page": 1,
+            "entry": "e0012"
+          },
+          "offset": {
+            "start": 523,
+            "end": 543
+          },
+          "context": {
+            "before": "grad()\n3 实验结果\n",
+            "after": "\n图 3 不同学习率下的验证"
+          },
+          "match_type": "implicit",
+          "found_by": [
+            "rule:relation",
+            "llm:semantic"
+          ],
+          "binding": {
+            "mode": "entry_hint",
+            "occurrences": 1
+          }
+        },
+        {
+          "quote": "图 3 不同学习率下的验证损失曲线",
+          "source_ref": {
+            "file": "report.pdf",
+            "sha256": "a2ffb76c203c6fe2da648201cf9f8f8009946f7ec3f03fb72247d8c5683342e6",
+            "page": 1,
+            "entry": "e0013"
+          },
+          "offset": {
+            "start": 544,
+            "end": 561
+          },
+          "context": {
+            "before": "证损失的下降曲线如图所示。\n",
+            "after": "\n如图 3 所示，学习率取 "
+          },
+          "match_type": "implicit",
+          "found_by": [
+            "rule:numbering",
+            "structure:figure",
+            "llm:semantic"
+          ],
+          "binding": {
+            "mode": "entry_hint",
+            "occurrences": 1
+          }
+        }
+      ],
+      "asset_refs": [
+        {
+          "kind": "page_render",
+          "ref": "fixtures/out/report.pdf.p003.png",
+          "page": 3,
+          "note": "第 3 页整页渲染 —— 图形内容只能靠它来读"
+        }
+      ],
+      "note": "指向图的句子 + 图注 + 原始页图，共同构成趋势类证据"
+    },
+    {
+      "id": "ev0002",
+      "rubric_item_id": "R2.1",
+      "facet_id": "F1",
+      "spans": [
+        {
+          "quote": "baseline 0.812 6.4\n+ attention 0.847 7.1\n+ attention + 数据增强 0.861 9.8",
+          "source_ref": {
+            "file": "report.pdf",
+            "sha256": "a2ffb76c203c6fe2da648201cf9f8f8009946f7ec3f03fb72247d8c5683342e6",
+            "page": 1,
+            "entry": "e0018"
+          },
+          "offset": {
+            "start": 708,
+            "end": 777
+          },
+          "context": {
+            "before": "准确率 训练时长(min)\n",
+            "after": "\n深圳大学 计算机与软件学院"
+          },
+          "match_type": "verbatim",
+          "found_by": [
+            "rule:numeric",
+            "llm:semantic"
+          ],
+          "binding": {
+            "mode": "entry_hint",
+            "occurrences": 1
+          }
+        }
+      ],
+      "note": "表体里的实际数值"
+    },
+    {
+      "id": "ev0003",
+      "rubric_item_id": "R2.2",
+      "facet_id": "F1",
+      "spans": [
+        {
+          "quote": "图 3 不同学习率下的验证损失曲线",
+          "source_ref": {
+            "file": "report.pdf",
+            "sha256": "a2ffb76c203c6fe2da648201cf9f8f8009946f7ec3f03fb72247d8c5683342e6",
+            "page": 1,
+            "entry": "e0013"
+          },
+          "offset": {
+            "start": 544,
+            "end": 561
+          },
+          "context": {
+            "before": "证损失的下降曲线如图所示。\n",
+            "after": "\n如图 3 所示，学习率取 "
+          },
+          "match_type": "verbatim",
+          "found_by": [
+            "rule:numbering",
+            "structure:figure"
+          ],
+          "binding": {
+            "mode": "entry_hint",
+            "occurrences": 1
+          }
+        }
+      ],
+      "note": "图的编号与标题"
+    },
+    {
+      "id": "ev0004",
+      "rubric_item_id": "R2.2",
+      "facet_id": "F2",
+      "spans": [
+        {
+          "quote": "表 4 各模块消融对比",
+          "source_ref": {
+            "file": "report.pdf",
+            "sha256": "a2ffb76c203c6fe2da648201cf9f8f8009946f7ec3f03fb72247d8c5683342e6",
+            "page": 2,
+            "entry": "e0021"
+          },
+          "offset": {
+            "start": 820,
+            "end": 831
+          },
+          "context": {
+            "before": "1150xxx · 张同学\n",
+            "after": "\n可以看出注意力模块带来约 "
+          },
+          "match_type": "verbatim",
+          "found_by": [
+            "rule:numbering",
+            "rule:relation",
+            "structure:table"
+          ],
+          "binding": {
+            "mode": "entry_hint",
+            "occurrences": 1
+          }
+        }
+      ],
+      "note": "表的编号与标题"
+    },
+    {
+      "id": "ev0005",
+      "rubric_item_id": "R2.1",
+      "facet_id": "F6",
+      "spans": [
+        {
+          "quote": "可以看出注意力模块带来约 3.5 个百分点的提升，而数据增强进一步提升至 86.1%， 但训练时长增加约",
+          "source_ref": {
+            "file": "report.pdf",
+            "sha256": "a2ffb76c203c6fe2da648201cf9f8f8009946f7ec3f03fb72247d8c5683342e6",
+            "page": 2,
+            "entry": "e0022"
+          },
+          "offset": {
+            "start": 832,
+            "end": 884
+          },
+          "context": {
+            "before": "学\n表 4 各模块消融对比\n",
+            "after": "\n53%，需要在精度与成本之"
+          },
+          "match_type": "verbatim",
+          "found_by": [
+            "rule:numeric",
+            "rule:relation",
+            "llm:semantic"
+          ],
+          "binding": {
+            "mode": "entry_hint",
+            "occurrences": 1
+          }
+        }
+      ],
+      "note": "由数据得出的结论性表述"
+    },
+    {
+      "id": "ev0006",
+      "rubric_item_id": "R3.2",
+      "facet_id": "F2",
+      "spans": [
+        {
+          "quote": "此外，学习率预热策略在训练初期带来了更稳定的梯度范数，但对最终精度影响有限。 我们建议在算力",
+          "source_ref": {
+            "file": "report.pdf",
+            "sha256": "a2ffb76c203c6fe2da648201cf9f8f8009946f7ec3f03fb72247d8c5683342e6",
+            "page": 2,
+            "entry": "e0025"
+          },
+          "offset": {
+            "start": 1034,
+            "end": 1080
+          },
+          "context": {
+            "before": "，但需要更多实验加以确认。\n",
+            "after": "受限\n时优先保证训练轮数，而"
+          },
+          "match_type": "implicit",
+          "found_by": [
+            "llm:semantic"
+          ],
+          "binding": {
+            "mode": "entry_hint",
+            "occurrences": 12
+          }
+        }
+      ],
+      "note": "改进方向：同一句话在原文里出现多次，按 L1 条目提示绑定到第 2 页那一处"
+    },
+    {
+      "id": "ev0007",
+      "rubric_item_id": "R3.2",
+      "facet_id": "F2",
+      "spans": [
+        {
+          "quote": "此外，学习率预热策略在训练初期带来了更稳定的梯度范数，但对最终精度影响有限。 我们建议在算力",
+          "source_ref": {
+            "file": "report.pdf",
+            "sha256": "a2ffb76c203c6fe2da648201cf9f8f8009946f7ec3f03fb72247d8c5683342e6",
+            "page": 4,
+            "entry": "e0059"
+          },
+          "offset": {
+            "start": 3158,
+            "end": 3204
+          },
+          "context": {
+            "before": "1150xxx · 张同学\n",
+            "after": "受限\n时优先保证训练轮数，而"
+          },
+          "match_type": "implicit",
+          "found_by": [
+            "llm:semantic"
+          ],
+          "binding": {
+            "mode": "entry_hint",
+            "occurrences": 12
+          }
+        }
+      ],
+      "note": "同样的引用串，绑定到第 4 页那一处 —— 这是修复后的行为"
+    },
+    {
+      "id": "ev0008",
+      "rubric_item_id": "R2.1",
+      "facet_id": "F1",
+      "spans": [
+        {
+          "quote": "baseline 0.812 6.4",
+          "source_ref": {
+            "file": "report.pdf",
+            "sha256": "a2ffb76c203c6fe2da648201cf9f8f8009946f7ec3f03fb72247d8c5683342e6",
+            "page": 1,
+            "entry": "e0018"
+          },
+          "offset": {
+            "start": 708,
+            "end": 726
+          },
+          "context": {
+            "before": "准确率 训练时长(min)\n",
+            "after": "\n+ attention 0"
+          },
+          "match_type": "verbatim",
+          "found_by": [
+            "rule:numeric",
+            "llm:semantic"
+          ],
+          "binding": {
+            "mode": "entry_hint",
+            "occurrences": 1
+          }
+        },
+        {
+          "quote": "+ attention 0.847 7.1",
+          "source_ref": {
+            "file": "report.pdf",
+            "sha256": "a2ffb76c203c6fe2da648201cf9f8f8009946f7ec3f03fb72247d8c5683342e6",
+            "page": 1,
+            "entry": "e0018"
+          },
+          "offset": {
+            "start": 727,
+            "end": 748
+          },
+          "context": {
+            "before": "ine 0.812 6.4\n",
+            "after": "\n+ attention +"
+          },
+          "match_type": "verbatim",
+          "found_by": [
+            "rule:numeric",
+            "llm:semantic"
+          ],
+          "binding": {
+            "mode": "entry_hint",
+            "occurrences": 1
+          }
+        },
+        {
+          "quote": "+ attention + 数据增强 0.861 9.8",
+          "source_ref": {
+            "file": "report.pdf",
+            "sha256": "a2ffb76c203c6fe2da648201cf9f8f8009946f7ec3f03fb72247d8c5683342e6",
+            "page": 1,
+            "entry": "e0018"
+          },
+          "offset": {
+            "start": 749,
+            "end": 777
+          },
+          "context": {
+            "before": "ion 0.847 7.1\n",
+            "after": "\n深圳大学 计算机与软件学院"
+          },
+          "match_type": "verbatim",
+          "found_by": [
+            "rule:numeric",
+            "llm:semantic"
+          ],
+          "binding": {
+            "mode": "entry_hint",
+            "occurrences": 1
+          }
+        }
+      ],
+      "note": "单行的表体行：值与其行标签在同一行内相邻 —— L3 只有在这种「结构化」的 span 上才允许判定"
+    },
+    {
+      "id": "ev0009",
+      "rubric_item_id": "R2.1",
+      "facet_id": "F1",
+      "spans": [
+        {
+          "quote": "配置 验证准确率 训练时长(min)",
+          "source_ref": {
+            "file": "report.pdf",
+            "sha256": "a2ffb76c203c6fe2da648201cf9f8f8009946f7ec3f03fb72247d8c5683342e6",
+            "page": 1,
+            "entry": "e0017"
+          },
+          "offset": {
+            "start": 689,
+            "end": 707
+          },
+          "context": {
+            "before": "变化，结果如表 4 所示。\n",
+            "after": "\nbaseline 0.81"
+          },
+          "match_type": "verbatim",
+          "found_by": [
+            "llm:semantic"
+          ],
+          "binding": {
+            "mode": "entry_hint",
+            "occurrences": 1
+          }
+        }
+      ],
+      "note": "表格列头行：它声明了各列的量纲（验证准确率→ratio；训练时长(min)→duration）。L3 用它作为量纲的额外依据"
+    }
+  ],
+  "diagnostics": {
+    "diagnostic_only": true,
+    "notice": "这是契约的自洽样板，不是一次完整检索的日志：规则/结构通道的归因由真实规则算出，语义通道的命中为模拟返回。真实跑一遍会因高召回设计产出远多于本样本的 span，且 status 可能出现 partial / source_unavailable / channel_error。facet coverage 不等于 evidence recall，绝不参与评分 —— evidence recall 只在评测环节用人工 gold set 计算。channels 是各通道命中数（同一 span 可被多通道命中，故不可相加）；hits 是去重后的 span 数。",
+    "facet_coverage": [
+      {
+        "rubric_item_id": "R1",
+        "facet_id": "F1",
+        "form": "narrative",
+        "modality": [
+          "text"
+        ],
+        "channels": {
+          "llm:semantic": 0
+        },
+        "hits": 0,
+        "status": "complete",
+        "outcome": "no_candidate",
+        "reason": null
+      },
+      {
+        "rubric_item_id": "R1.1",
+        "facet_id": "F1",
+        "form": "narrative",
+        "modality": [
+          "text"
+        ],
+        "channels": {
+          "llm:semantic": 0
+        },
+        "hits": 0,
+        "status": "complete",
+        "outcome": "no_candidate",
+        "reason": null
+      },
+      {
+        "rubric_item_id": "R1.2",
+        "facet_id": "F1",
+        "form": "narrative",
+        "modality": [
+          "text"
+        ],
+        "channels": {
+          "llm:semantic": 0
+        },
+        "hits": 0,
+        "status": "complete",
+        "outcome": "no_candidate",
+        "reason": null
+      },
+      {
+        "rubric_item_id": "R1.2",
+        "facet_id": "F2",
+        "form": "value",
+        "modality": [
+          "text",
+          "table"
+        ],
+        "channels": {
+          "llm:semantic": 0,
+          "rule:numeric": 0
+        },
+        "hits": 0,
+        "status": "complete",
+        "outcome": "no_candidate",
+        "reason": null
+      },
+      {
+        "rubric_item_id": "R1.3",
+        "facet_id": "F1",
+        "form": "value",
+        "modality": [
+          "text",
+          "table"
+        ],
+        "channels": {
+          "llm:semantic": 0,
+          "rule:numbering": 0,
+          "rule:numeric": 0
+        },
+        "hits": 0,
+        "status": "complete",
+        "outcome": "no_candidate",
+        "reason": null
+      },
+      {
+        "rubric_item_id": "R1.3",
+        "facet_id": "F2",
+        "form": "procedure",
+        "modality": [
+          "text"
+        ],
+        "channels": {
+          "llm:semantic": 0,
+          "rule:numbering": 0
+        },
+        "hits": 0,
+        "status": "complete",
+        "outcome": "no_candidate",
+        "reason": null
+      },
+      {
+        "rubric_item_id": "R2",
+        "facet_id": "F1",
+        "form": "narrative",
+        "modality": [
+          "text"
+        ],
+        "channels": {
+          "llm:semantic": 0
+        },
+        "hits": 0,
+        "status": "complete",
+        "outcome": "no_candidate",
+        "reason": null
+      },
+      {
+        "rubric_item_id": "R2.1",
+        "facet_id": "F1",
+        "form": "value",
+        "modality": [
+          "text",
+          "table"
+        ],
+        "channels": {
+          "llm:semantic": 5,
+          "rule:numeric": 4,
+          "structure:table": 0
+        },
+        "hits": 5,
+        "status": "complete",
+        "outcome": "located",
+        "reason": null
+      },
+      {
+        "rubric_item_id": "R2.1",
+        "facet_id": "F2",
+        "form": "narrative",
+        "modality": [
+          "text",
+          "figure"
+        ],
+        "channels": {
+          "llm:semantic": 2,
+          "rule:numbering": 1,
+          "rule:relation": 1,
+          "structure:figure": 1
+        },
+        "hits": 2,
+        "status": "complete",
+        "outcome": "located",
+        "reason": null
+      },
+      {
+        "rubric_item_id": "R2.1",
+        "facet_id": "F3",
+        "form": "relation",
+        "modality": [
+          "text"
+        ],
+        "channels": {
+          "llm:semantic": 0,
+          "rule:relation": 0
+        },
+        "hits": 0,
+        "status": "complete",
+        "outcome": "no_candidate",
+        "reason": null
+      },
+      {
+        "rubric_item_id": "R2.1",
+        "facet_id": "F4",
+        "form": "value",
+        "modality": [
+          "text",
+          "table",
+          "figure"
+        ],
+        "channels": {
+          "llm:semantic": 0,
+          "rule:numeric": 0,
+          "structure:figure": 0,
+          "structure:table": 0
+        },
+        "hits": 0,
+        "status": "complete",
+        "outcome": "no_candidate",
+        "reason": null
+      },
+      {
+        "rubric_item_id": "R2.1",
+        "facet_id": "F5",
+        "form": "relation",
+        "modality": [
+          "text",
+          "table"
+        ],
+        "channels": {
+          "llm:semantic": 0,
+          "rule:relation": 0,
+          "structure:table": 0
+        },
+        "hits": 0,
+        "status": "complete",
+        "outcome": "no_candidate",
+        "reason": null
+      },
+      {
+        "rubric_item_id": "R2.1",
+        "facet_id": "F6",
+        "form": "relation",
+        "modality": [
+          "text"
+        ],
+        "channels": {
+          "llm:semantic": 1,
+          "rule:numeric": 1,
+          "rule:relation": 1
+        },
+        "hits": 1,
+        "status": "complete",
+        "outcome": "located",
+        "reason": null
+      },
+      {
+        "rubric_item_id": "R2.2",
+        "facet_id": "F1",
+        "form": "narrative",
+        "modality": [
+          "figure",
+          "text"
+        ],
+        "channels": {
+          "llm:semantic": 0,
+          "rule:numbering": 1,
+          "structure:figure": 1
+        },
+        "hits": 1,
+        "status": "complete",
+        "outcome": "located",
+        "reason": null
+      },
+      {
+        "rubric_item_id": "R2.2",
+        "facet_id": "F2",
+        "form": "narrative",
+        "modality": [
+          "table",
+          "text"
+        ],
+        "channels": {
+          "llm:semantic": 0,
+          "rule:numbering": 1,
+          "rule:relation": 1,
+          "structure:table": 1
+        },
+        "hits": 1,
+        "status": "complete",
+        "outcome": "located",
+        "reason": null
+      },
+      {
+        "rubric_item_id": "R3",
+        "facet_id": "F1",
+        "form": "narrative",
+        "modality": [
+          "text"
+        ],
+        "channels": {
+          "llm:semantic": 0
+        },
+        "hits": 0,
+        "status": "complete",
+        "outcome": "no_candidate",
+        "reason": null
+      },
+      {
+        "rubric_item_id": "R3.1",
+        "facet_id": "F1",
+        "form": "relation",
+        "modality": [
+          "text"
+        ],
+        "channels": {
+          "llm:semantic": 0,
+          "rule:relation": 0
+        },
+        "hits": 0,
+        "status": "complete",
+        "outcome": "no_candidate",
+        "reason": null
+      },
+      {
+        "rubric_item_id": "R3.1",
+        "facet_id": "F2",
+        "form": "relation",
+        "modality": [
+          "text",
+          "table"
+        ],
+        "channels": {
+          "llm:semantic": 0,
+          "rule:numeric": 0,
+          "rule:relation": 0,
+          "structure:table": 0
+        },
+        "hits": 0,
+        "status": "complete",
+        "outcome": "no_candidate",
+        "reason": null
+      },
+      {
+        "rubric_item_id": "R3.2",
+        "facet_id": "F1",
+        "form": "narrative",
+        "modality": [
+          "text"
+        ],
+        "channels": {
+          "llm:semantic": 0
+        },
+        "hits": 0,
+        "status": "complete",
+        "outcome": "no_candidate",
+        "reason": null
+      },
+      {
+        "rubric_item_id": "R3.2",
+        "facet_id": "F2",
+        "form": "procedure",
+        "modality": [
+          "text"
+        ],
+        "channels": {
+          "llm:semantic": 2
+        },
+        "hits": 2,
+        "status": "complete",
+        "outcome": "located",
+        "reason": null
+      }
+    ],
+    "rubric_item_summary": [
+      {
+        "rubric_item_id": "R1",
+        "candidates": 0,
+        "status": "complete",
+        "outcome": "no_candidate",
+        "scanned": [
+          "e0001-e0063"
+        ],
+        "notes": [
+          "未找到候选"
+        ]
+      },
+      {
+        "rubric_item_id": "R1.1",
+        "candidates": 0,
+        "status": "complete",
+        "outcome": "no_candidate",
+        "scanned": [
+          "e0001-e0063"
+        ],
+        "notes": [
+          "未找到候选"
+        ]
+      },
+      {
+        "rubric_item_id": "R1.2",
+        "candidates": 0,
+        "status": "complete",
+        "outcome": "no_candidate",
+        "scanned": [
+          "e0001-e0063"
+        ],
+        "notes": [
+          "未找到候选"
+        ]
+      },
+      {
+        "rubric_item_id": "R1.3",
+        "candidates": 0,
+        "status": "complete",
+        "outcome": "no_candidate",
+        "scanned": [
+          "e0001-e0063"
+        ],
+        "notes": [
+          "未找到候选"
+        ]
+      },
+      {
+        "rubric_item_id": "R2",
+        "candidates": 0,
+        "status": "complete",
+        "outcome": "no_candidate",
+        "scanned": [
+          "e0001-e0063"
+        ],
+        "notes": [
+          "未找到候选"
+        ]
+      },
+      {
+        "rubric_item_id": "R2.1",
+        "candidates": 5,
+        "status": "complete",
+        "outcome": "located",
+        "scanned": [
+          "e0001-e0063"
+        ],
+        "notes": []
+      },
+      {
+        "rubric_item_id": "R2.2",
+        "candidates": 2,
+        "status": "complete",
+        "outcome": "located",
+        "scanned": [
+          "e0001-e0063"
+        ],
+        "notes": []
+      },
+      {
+        "rubric_item_id": "R3",
+        "candidates": 0,
+        "status": "complete",
+        "outcome": "no_candidate",
+        "scanned": [
+          "e0001-e0063"
+        ],
+        "notes": [
+          "未找到候选"
+        ]
+      },
+      {
+        "rubric_item_id": "R3.1",
+        "candidates": 0,
+        "status": "complete",
+        "outcome": "no_candidate",
+        "scanned": [
+          "e0001-e0063"
+        ],
+        "notes": [
+          "未找到候选"
+        ]
+      },
+      {
+        "rubric_item_id": "R3.2",
+        "candidates": 2,
+        "status": "complete",
+        "outcome": "located",
+        "scanned": [
+          "e0001-e0063"
+        ],
+        "notes": []
+      }
+    ]
+  },
+  "advisory_lint": {
+    "advisory": true,
+    "scanned_fields": [
+      "evidence[].note",
+      "evidence[].asset_refs[].note"
+    ],
+    "passed": false,
+    "notice": "只是提示：passed=false 不阻断产物写出，也不改变任何判定。本次它命中的是「验证准确率」里的「准确」—— 一个完全合法的技术术语，这正是禁用词表不能当主安全机制的原因（主机制是 schema 封闭 + 无评分字段）。",
+    "banned_words": [
+      "充分",
+      "不足",
+      "欠缺",
+      "完整",
+      "合理",
+      "准确",
+      "错误",
+      "优秀",
+      "遗漏",
+      "没有给出",
+      "缺少",
+      "符合要求",
+      "达标",
+      "未达标",
+      "恰当",
+      "欠佳",
+      "正确地",
+      "不严谨"
+    ],
+    "violations": [
+      {
+        "path": "evidence.ev0009.note",
+        "word": "准确",
+        "text": "表格列头行：它声明了各列的量纲（验证准确率→ratio；训练时长(min)→duration）。L3 用它作为量纲的额外依据"
+      }
+    ]
+  }
+}
