@@ -148,6 +148,7 @@ const publicJob = j => ({ id: j.id, state: j.state, steps: j.steps, case: j.case
 // ---------------------------------------------------------------- 分析流水线
 async function analyze({ job, caseName, docPath, rubricPath, profilePath, jobDir }) {
   const outDir = jobDir;   // ★ 该任务的所有产物只落在自己的目录里
+  job.doc_file = docPath;  // ★ 记下原件路径：产物接口只对它 + 教师视图开白名单
   job.state = 'running';
   const step = (name, extra = {}) => { job.steps.push({ name, at: new Date().toISOString(), ...extra }); };
   // ★ 排障：保留**完整输出**（上限 20KB），而不是尾部若干行 ——
@@ -184,8 +185,15 @@ async function analyze({ job, caseName, docPath, rubricPath, profilePath, jobDir
   step('评测链完成', { ms: e2e.ms });
 
   step('生成教师视图');
+  // ★ 传入原件直链：教师视图**不再内联 PDF**；点评价里的「查看原文」= 在新标签页打开原件并跳到 #page=N，
+  //   交给浏览器原生查看器（缩放/翻页/搜索），且不干扰当前页已调好的缩放。
+  const pdfArgs = (job.doc_file && /\.pdf$/i.test(job.doc_file))
+    ? ['--pdf-url', '/api/artifact/' + job.id + '/' + path.basename(job.doc_file) + '?token=' + job.token,
+       '--pdf', job.doc_file]
+    : [];
   const tv = await run(path.join(here, '_teacherui.mjs'),
-    ['--case', caseName, '--out', outDir, '--rubric', rubricPath, '--profile', profilePath], 5 * 60 * 1000, onOut);
+    ['--case', caseName, '--out', outDir, '--rubric', rubricPath, '--profile', profilePath, ...pdfArgs],
+    5 * 60 * 1000, onOut);
   keepTail(tv);
   if (tv.code !== 0) { job.state = 'failed'; job.error = '教师视图生成失败'; job.stderr_tail = tv.stderr.slice(-1500); return; }
   step('教师视图完成', { ms: tv.ms });
@@ -288,6 +296,7 @@ const server = http.createServer(async (req, res) => {
       quota.used += 1;
       await saveQuota();
       job.case = caseName;
+      job.doc_file = docPath;   // ★ 同步记录，保证 /api/job 立刻能给 pdf_url
       analyze({ job, caseName, docPath, rubricPath, profilePath, jobDir })
         .catch(e => { job.state = 'failed'; job.error = String(e); });
       // ★ token 只返回给提交者本人
@@ -307,7 +316,13 @@ const server = http.createServer(async (req, res) => {
       if (!job) return json(res, 404, { error: 'unknown job' });
       if (url.searchParams.get('token') !== job.token) return json(res, 403, { error: '缺少或错误的 token' });
       const out = publicJob(job);
-      if (job.view_file) out.view_url = '/api/artifact/' + job.id + '/' + path.basename(job.view_file) + '?token=' + job.token;
+      const tok = '?token=' + job.token;
+      if (job.view_file) out.view_url = '/api/artifact/' + job.id + '/' + path.basename(job.view_file) + tok;
+      // ★ 原件若是 PDF：给直链，教师页可拼 #page=N 交给浏览器原生查看器跳页
+      if (job.doc_file && /\.pdf$/i.test(job.doc_file)) {
+        out.pdf_url = '/api/artifact/' + job.id + '/' + path.basename(job.doc_file) + tok;
+        out.pdf_pages = job.pdf_pages ?? null;
+      }
       return json(res, 200, out);
     }
 
@@ -321,12 +336,22 @@ const server = http.createServer(async (req, res) => {
       if (!job) return json(res, 404, { error: 'unknown job' });
       if (url.searchParams.get('token') !== job.token) return json(res, 403, { error: '缺少或错误的 token' });
       if (Date.now() > job.expires_at) return json(res, 410, { error: '产物已过期（TTL）' });
-      // ★★ 白名单：只允许取该任务自己生成的教师视图，其余（原件、中间产物、其他文件）一律 404
-      const allowed = job.view_file ? path.basename(job.view_file) : null;
-      if (!allowed || name !== allowed) return json(res, 404, { error: 'not found（该任务不提供此文件）' });
+      // ★★ 严格白名单：**逐字比对 basename**，只放行两类文件 ——
+      //     ① 该任务生成的教师视图 HTML；② 该任务自己上传的**原件**（供浏览器原生查看器打开）。
+      //     其余（中间产物、其他任务文件、同目录任何别的文件）一律 404；**绝不整目录开放**。
+      const viewName = job.view_file ? path.basename(job.view_file) : null;
+      const docName = job.doc_file ? path.basename(job.doc_file) : null;
+      const isView = viewName && name === viewName;
+      const isDoc = docName && name === docName;
+      if (!isView && !isDoc) return json(res, 404, { error: 'not found（该任务不提供此文件）' });
+      const src = isView ? job.view_file : job.doc_file;
+      const extra = isDoc
+        // ★ 原件用 inline：否则浏览器可能直接下载，教师就用不上自带的缩放/翻页/搜索
+        ? { 'content-disposition': 'inline; filename="' + encodeURIComponent(name) + '"' }
+        : {};
       try {
-        const f = safeJoin(path.dirname(job.view_file), '/' + name);
-        return send(res, 200, await fsp.readFile(f), MIME[path.extname(f)] || 'application/octet-stream');
+        const f = safeJoin(path.dirname(src), '/' + name);
+        return send(res, 200, await fsp.readFile(f), MIME[path.extname(f)] || 'application/octet-stream', extra);
       } catch { return json(res, 404, { error: 'not found' }); }
     }
 

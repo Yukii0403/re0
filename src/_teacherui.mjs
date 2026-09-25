@@ -57,23 +57,32 @@ for (const a of assessmentArtifact.assessments ?? []) {
   const list = (a.findings ?? [])
     .filter(f => !shownKeys.has(a.rubric_item_id + '|' + f.note))
     .map(f => ({ polarity: f.polarity, kind: f.kind, severity: f.severity ?? null, note: f.note,
-      quote: f.quote ?? null, anchored: !!(f.located || f.verification) }));
+      quote: f.quote ?? null, anchored: !!(f.located || f.verification),
+      source_page: f.located?.source_ref?.page ?? null }));
   if (list.length) foldedByItem[a.rubric_item_id] = list;
 }
 
 // ★ 原件（PDF）：抽取后的 TXT 看不到图表/加粗/下划线 —— 必须给一个"打开原件"的入口
-// ★★ 原件必须**内联**：静态预览服务只映射单个 HTML 文件 —— 同目录、上级路径一律 404（实测）。
-//   所以把 PDF 读成 base64 直接写进页面（539 KB 级，可接受），既不依赖服务映射、也能离线双击打开。
+// 静态自包含视图内联原件：预览服务只映射单个 HTML 文件，同目录、上级路径不可用。
+// 实时视图则使用任务令牌保护的原件直链，不把 PDF 编进 HTML。
 const pdfAbs = path.resolve(root, argOf('--pdf', path.join('fixtures/real', CASE.replace(/\.[a-z]+$/i, '') + '.pdf')));
-const pdfBytes = await fsp.readFile(pdfAbs).catch(() => null);
-// ★★ 原始页面图：L2 早已把 PDF 渲成整页 PNG（`<case>.p00N.png`）——
-//   直接内联它们当"原 PDF 的可视化"，**不引入任何新依赖**，且页码/缩放完全可控。
-//   （用 <embed> 看 PDF 的话，每次导航都会重载 → 必然把教师调好的缩放重置，做不到"保持缩放"。）
-const pngFiles = (await fsp.readdir(OUT).catch(() => []))
-  .filter(f => f.startsWith(CASE + '.p') && f.endsWith('.png'))
-  .map(f => ({ file: f, page: Number((f.match(/\.p(\d+)\.png$/) || [])[1]) }))
-  .filter(x => Number.isInteger(x.page))
-  .sort((a, b) => a.page - b.page);
+// ★ 原件直链（服务端部署时传入）：给了它就**不内联 PDF、也不内联整页 PNG** ——
+//   评价页通过"新标签打开原件 #page=N"交给浏览器原生查看器（缩放/翻页/搜索都好用），
+//   不把整份 PDF / 几十张页图编进 HTML（Yukii 9/25 要求：实时站不必把整份 PDF 编进教师视图 HTML）。
+//   页图只在"无直链（静态自包含，双击即开）"时才内联，作离线兜底。
+const PDF_URL = argOf('--pdf-url', null);
+const pdfBytes = PDF_URL ? null : await fsp.readFile(pdfAbs).catch(() => null);   // ★ 有直链就不再内联 PDF
+// ★★ 原始页面图：L2 把 PDF 渲成整页 PNG（`<case>.p00N.png`）。
+//   仅当**没有原件直链**（静态自包含模式）才内联它们当"原 PDF 的可视化" —— 不引入新依赖、页码/缩放可控。
+//   （实时站有真 PDF 直链，页图属于"把整份 PDF 编进 HTML"，按 Yukii 要求不内联。）
+const inlinePages = !PDF_URL;
+const pngFiles = inlinePages
+  ? (await fsp.readdir(OUT).catch(() => []))
+    .filter(f => f.startsWith(CASE + '.p') && f.endsWith('.png'))
+    .map(f => ({ file: f, page: Number((f.match(/\.p(\d+)\.png$/) || [])[1]) }))
+    .filter(x => Number.isInteger(x.page))
+    .sort((a, b) => a.page - b.page)
+  : [];
 const pages = [];
 for (const x of pngFiles) {
   const buf = await fsp.readFile(path.join(OUT, x.file)).catch(() => null);
@@ -81,8 +90,13 @@ for (const x of pngFiles) {
 }
 const pdfB64 = pdfBytes ? pdfBytes.toString('base64') : null;
 const pdfKB = pdfBytes ? Math.round(pdfBytes.length / 1024) : 0;
+// ★ 原件文件名：有直链时从直链里取 basename（更准确），否则用本地推断
+const pdfName = PDF_URL
+  ? decodeURIComponent(String(PDF_URL.split('?')[0].split('/').pop()))
+  : path.basename(pdfAbs);
 
 const DATA = {
+  pdfUrl: PDF_URL,
   view, fullText,
   rubricItems: Object.fromEntries((rubric.items ?? []).map(i => [i.id, i.text ?? ''])),
   rubricId: rubric.rubric_id ?? null,
@@ -94,11 +108,12 @@ const DATA = {
   pages_total_kb: pages.reduce((a, x) => a + x.kb, 0),
   source: {
     // ★ 抽取文本 vs 原件：界面必须区分清楚（图表/加粗/下划线只能在原件里核）
-    text_note: '下方文本框是**抽取后的纯文本**，图表、加粗、下划线等信息不在这里',
+    text_note: '下方文本框是抽取后的纯文本，图表、加粗、下划线等信息不在这里',
     pdf_available: !!pdfBytes,
+    pdf_via_url: !!PDF_URL,
     pages_available: pages.length > 0,
     pdf_kb: pdfKB,
-    pdf_name: path.basename(pdfAbs),
+    pdf_name: pdfName,
   },
 };
 
@@ -133,6 +148,8 @@ button:hover{background:#f2f2ee}
 button.on{background:#eef6ff;border-color:#9cc4e8}
 button.pri{background:var(--acc);border-color:var(--acc);color:#fff}
 button.pri:hover{background:#173e60}
+.source-action{display:inline-block;font:inherit;padding:5px 12px;border:1px solid var(--line);border-radius:7px;background:#fff;color:var(--ink);text-decoration:none}
+.source-action:hover{background:#f2f2ee}
 input[type=number]{width:78px;font:inherit;padding:4px 8px;border:1px solid var(--line);border-radius:7px}
 input[type=number].on{background:#eefaf0;border-color:#c7ecd2}
 input[type=number].bad{background:#fff5f0;border-color:#c2410c}
@@ -173,7 +190,9 @@ B.push('<section><h2>③ 评语草稿</h2><div id="draft">（点右下角「生�
   + '<div class="tiny">本地模板拼装，用教师给分与已确认的评价生成；正式版措辞由评语层（模型）产出。</div></section>');
 // ★ 原始页面查看器：默认「适合阅读区宽度」；缩放由教师掌控且**不随切换评价而重置**
 if (pages.length) {
-  B.push('<section id="secpages"><h2>原始页面（' + pages.length + ' 页 · 内联 ' + (pages.reduce((a, x) => a + x.kb, 0)) + ' KB）</h2>');
+  B.push('<section id="secpages"><h2>原始页面与抽取文本'
+    + (PDF_URL ? '（<span style="color:#8a5a09">备用方式</span>：请在浏览器里打开原件核对）' : '')
+    + '（' + pages.length + ' 页）</h2>');
   B.push('<div class="tiny">这是报告的**原始页面渲染**（索引格式、图表、加粗/下划线都在这里核）。'
     + '点右侧评价里的「查看原文」会跳到对应页，并在下方显示引文。</div>');
   B.push('<div class="row viewer-bar">'
@@ -195,8 +214,16 @@ B.push('<section><h2>原文（抽取文本）</h2>'
   + '<div class="tiny" id="srcnote"></div>'
   + '<div class="row" id="srcrow"></div>'
   + '<div class="quote" id="full"></div></section>');
-// ★ 原件区：PDF 已内联成 data URI —— 不依赖任何服务映射，双击打开也能看
-if (pdfB64) {
+// ★ 原件区（服务端部署）：不内联，直接给"新标签打开"的直链 —— 用浏览器自带的缩放/翻页/搜索
+if (PDF_URL) {
+  B.push('<section><h2>原件（PDF · 在新标签页打开）</h2>'
+    + '<div class="tiny">用浏览器自带的查看器核对原件：<b>缩放、翻页、搜索</b>都可用。'
+    + '索引格式、图表规范、加粗/下划线等只能在这里看；抽取文本可能丢失这些信息。</div>'
+    + '<div class="row"><a class="source-action" id="btnPdfOpen" href="' + esc(PDF_URL) + '" target="_blank" rel="noopener noreferrer">在新标签页打开原件</a>'
+    + '<span class="tiny">点条目里的「查看原文」会直接跳到该条对应的页（<code>#page=N</code>）。</span></div></section>');
+}
+// ★ 原件区（静态自包含）：PDF 已内联成 data URI —— 不依赖任何服务映射，双击打开也能看
+else if (pdfB64) {
   B.push('<section><h2>原件（PDF · 内联 ' + pdfKB + ' KB）</h2>'
     + '<div class="tiny">索引格式、图表规范、加粗/下划线等只能在这里核对；抽取文本可能丢失这些信息。</div>'
     + '<div class="row"><button id="btnPdfToggle" class="pri">展开原件</button>'

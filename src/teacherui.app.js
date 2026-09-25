@@ -24,14 +24,16 @@
   let lastManual = null;     // 记住教师最近一次的缩放值，便于"恢复适应宽度"后再调回来
 
   const pageOf = f => {
-    const pg = f && f.located && f.located.source_ref ? f.located.source_ref.page : null;
+    const pg = f?.source_page ?? f?.located?.source_ref?.page ?? null;
     return (typeof pg === 'number') ? pg : null;
   };
   function pageChip(f) {
     const pg = pageOf(f);
     if (pg == null) return '<span class="chip w">页码未知（该观察未定位到页）</span>';
-    if (!PAGES[pg]) return '<span class="chip w">第 ' + pg + ' 页（无该页图片）</span>';
-    return '<span class="chip p pagechip" data-page="' + pg + '">第 ' + pg + ' 页</span>';
+    // ★ 有内联页图（静态自包含）→ 点 chip 跳到页内查看器；有原件直链（实时站）→ 直接新标签打开真 PDF 该页
+    if (PAGES[pg]) return '<span class="chip p pagechip" data-page="' + pg + '">第 ' + pg + ' 页</span>';
+    if (DATA.pdfUrl) return '<a class="chip p" href="' + esc(DATA.pdfUrl + '#page=' + pg) + '" target="_blank" rel="noopener noreferrer">第 ' + pg + ' 页</a>';
+    return '<span class="chip w">第 ' + pg + ' 页（无该页图片）</span>';
   }
 
   function quoteHtml(f) {
@@ -44,6 +46,15 @@
     if (f.located) return '<span class="chip g">已定位到原文</span>';
     if (f.verification) return '<span class="chip w">无原文定位，有 L3 挂钩</span>';
     return '<span class="chip w">⚠ 无定位无挂钩：请勿当作确定结论</span>';
+  }
+
+  function sourceAction(f, act) {
+    if (DATA.pdfUrl) {
+      const pg = f ? pageOf(f) : null;
+      const href = DATA.pdfUrl + (pg != null ? '#page=' + pg : '');
+      return '<a class="source-action" href="' + esc(href) + '" target="_blank" rel="noopener noreferrer">查看原文</a>';
+    }
+    return '<button data-act="' + act + '">查看原文</button>';
   }
 
   // ★★ 查看原文 = **跳到原件的对应页**（可视化），并在查看器下方显示该页引文。
@@ -157,9 +168,10 @@
     }
     if (f.importance_hint === 'secondary') h += '<div class="tiny">★ 次要问题：无绑定依据、也非“较严重” —— 若无更重要的问题需先看，可略过</div>';
     if (f.rank_reason) h += '<div class="tiny">排序依据：' + esc(f.rank_reason) + '</div>';
-    h += '<div class="row"><button data-act="show">查看原文</button></div>';
+    h += '<div class="row">' + sourceAction(f, 'show') + '</div>';
     d.innerHTML = h;
-    d.querySelector('[data-act=show]').onclick = function () { showInFull(f); };
+    const show = d.querySelector('[data-act=show]');
+    if (show) show.onclick = function () { showInFull(f); };
     return d;
   }
 
@@ -185,8 +197,9 @@
       + '<div class="tiny">依据：' + esc(e.basis) + '</div>'
       + '<div class="tiny">检查范围：已解析 ' + esc(e.check_scope.parsed_chars) + ' 字 / '
       + esc(e.check_scope.parsed_entries) + ' 条结构条目 / 解析警告 ' + esc(e.check_scope.parse_warnings) + ' 条</div>'
-      + '<div class="row"><button data-act="show">查看原文</button></div>';
-    d.querySelector('[data-act=show]').onclick = function () { showInFull(null); };
+      + '<div class="row">' + sourceAction(null, 'show') + '</div>';
+    const show = d.querySelector('[data-act=show]');
+    if (show) show.onclick = function () { showInFull(null); };
     mBox.appendChild(d);
   });
 
@@ -228,7 +241,7 @@
         + (f.severity ? ' · ' + esc(f.severity) : '') + (f.anchored ? '' : ' · ⚠无法回原文核对') + '</div>'
         + '<div>' + esc(f.note) + '</div>'
         + (f.quote ? '<div class="quote">⟨' + esc(f.quote) + '⟩</div>' : '')
-        + '<div class="row"><button data-act="showone">查看原文</button></div></div>';
+        + '<div class="row">' + sourceAction(f, 'showone') + '</div></div>';
     });
     h += '<div class="tiny">完整报告（含系统内部字段）：' + esc(V.source_assessment.file || '') + '</div></div>';
 
@@ -340,21 +353,25 @@
   // 原文区：说明 + 打开原件（PDF）
   const note = document.getElementById('srcnote');
   if (note) {
-    note.textContent = (DATA.source && DATA.source.text_note ? DATA.source.text_note : '')
-      + '；图表、加粗、下划线的判断请打开原件核对。';
+    const via = DATA.source && DATA.source.pdf_via_url;
+    note.textContent = (DATA.source && DATA.source.text_note ? DATA.source.text_note.replace(/\*\*/g, '') : '')
+      + (via ? '；原件请在新标签页打开核对（下方仅为抽取文本，作备用）。' : '；图表、加粗、下划线的判断请打开原件核对。');
   }
   const srow = document.getElementById('srcrow');
   if (srow) {
     if (DATA.source) {
       const t = document.createElement('span');
       t.className = 'tiny';
-      // ★ 按**输入类型**分别措辞：纯文本输入本来就没有页面图，不能说成"原件（PDF）不可用"（措辞不适配）
+      // ★ 按**输入类型 / 取件方式**分别措辞：纯文本输入本来就没有页面图，不能说成"原件（PDF）不可用"（措辞不适配）
       const isTextInput = /\.txt$/i.test(String(DATA.doc?.name ?? ''));
-      t.textContent = DATA.source.pdf_available
-        ? '（原件已内联在本页下方「原件（PDF）」区；原件与抽取文本可能不一致 —— 以原件为准）'
-        : isTextInput
-          ? '（本报告是**纯文本输入**：没有页面图，定位与引文都以抽取文本为准 —— 这是输入本身的形态，不是提取失败）'
-          : '⚠ 原件未能内联到本页（可能是解析或体积原因），当前只能核对抽取文本 —— 请以原件为准';
+      const via = DATA.source.pdf_via_url;
+      t.textContent = via
+        ? '（原件经「在新标签页打开原件」查看，未内联到本页；抽取文本仅作备用，图表/加粗/下划线请核对原件）'
+        : DATA.source.pdf_available
+          ? '（原件已内联在本页下方「原件（PDF）」区；原件与抽取文本可能不一致 —— 以原件为准）'
+          : isTextInput
+            ? '（本报告是纯文本输入：没有页面图，定位与引文都以抽取文本为准 —— 这是输入本身的形态，不是提取失败）'
+            : '⚠ 原件未能内联到本页（可能是解析或体积原因），当前只能核对抽取文本 —— 请以原件为准';
       srow.appendChild(t);
     }
   }
