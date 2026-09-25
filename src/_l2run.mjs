@@ -78,7 +78,7 @@ async function main() {
   const entries = idx.entries;
   const cr = JSON.parse(await fsp.readFile(RUBRIC_PATH, 'utf8'));
   const rubricSha = cr.source.sha256;
-  const rubricRef = { rubric_id: cr.rubric_id, sha256: rubricSha, file: 'canonical-rubric.example.json', frozen_at: cr.frozen_at };
+  const rubricRef = { rubric_id: cr.rubric_id, sha256: rubricSha, file: path.basename(RUBRIC_PATH), frozen_at: cr.frozen_at };
   const doc = { name: idx.doc.name, sha256: idx.doc.sha256, text_file: path.basename(TXT), index_file: path.basename(IDX), chars: idx.doc.chars };
   const scannedRange = `${entries[0].id}-${entries[entries.length - 1].id}`;
   const now = new Date().toISOString();
@@ -242,7 +242,8 @@ async function main() {
     const cov = validatePlanArgs(args, cr.items);
     if (!cov.ok) { back('plan_incomplete', cov.errors.join('; ')); continue; }
 
-    plan = planFromArgs(args, { rubric: cr, rubricSha256: rubricSha, planId: 'rp_cs3223_run', batchId: 'batch_cs3223_2026s1', version: 1, now });
+    plan = planFromArgs(args, { rubric: cr, rubricSha256: rubricSha,
+      planId: `rp_${rubricSha.slice(0, 12)}`, batchId: `batch_${rubricSha.slice(0, 12)}`, version: 1, now });
     for (const it of plan.items) for (const f of it.facets) { facetIndex.set(`${it.rubric_item_id}·${f.id}`, f); orderedFacets.push({ rubric_item_id: it.rubric_item_id, ...f }); }
     // ★ 每一个 tool_call 都必须有对应的 tool 回执 —— 即使它被接受了。
     //   否则下一轮请求就是"assistant 带 tool_calls 却没有 tool 消息跟随"，真实 API 直接 400。

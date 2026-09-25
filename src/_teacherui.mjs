@@ -235,6 +235,8 @@ else if (pdfB64) {
     + 'style="width:100%;height:640px;border:1px solid var(--line);border-radius:8px;background:#fff"></embed>'
     + '<div class="tiny" id="pdfnote">若上方没有渲染，请点"在新标签页打开原件"。</div>'
     + '</div></section>');
+} else if (/\.txt$/i.test(CASE)) {
+  B.push('<section><h2>原件（TXT）</h2><div class="tiny">本次上传的是纯文本报告；上方「原文（抽取文本）」即供核对的原始文字，没有 PDF 页面视图。</div></section>');
 } else {
   B.push('<section><h2>原件（PDF）</h2><div class="tiny">⚠ 未能读取原件文件，只能核对抽取文本。</div></section>');
 }

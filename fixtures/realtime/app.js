@@ -3,11 +3,14 @@
 (function () {
   const $ = id => document.getElementById(id);
   const MAX_MB = 10;
+  const MAX_RUBRIC_BYTES = 128 * 1024;
   const NL = String.fromCharCode(10);
 
   let picked = null;        // { name, size, kind }
   let fileDataB64 = null;   // 仅在需要上传时读取
   let rubrics = [];
+  let rubricUpload = null;
+  let rubricPreviewSeq = 0;
   let timer = null, t0 = 0;
   let jobToken = null;      // ★ 加固后：产物需带 job token 才能访问（不再匿名公开）
   let pdfRealtime = false;  // ★ 部署是否开启 PDF 实时分析（由 /api/cases 告知）
@@ -49,6 +52,9 @@
         o.value = rb; o.textContent = rb.split('/').pop().replace('canonical-rubric.', '').replace('.json', '');
         rs.appendChild(o);
       });
+      const uploadOption = document.createElement('option');
+      uploadOption.value = '__upload__'; uploadOption.textContent = '上传全新 TXT rubric（先预览确认）';
+      rs.appendChild(uploadOption);
       // 预置案例选中时自动带出它的 rubric
       sel.onchange = () => {
         const p = (j.presets || []).find(x => x.id === sel.value);
@@ -65,9 +71,66 @@
 
   function updateInfo() {
     const v = $('rubric').value;
+    $('rubricUploadBox').style.display = v === '__upload__' ? 'block' : 'none';
+    if (v === '__upload__') {
+      $('rubricInfo').textContent = '新 rubric：逐字解析条目与分值，需确认后才能分析';
+      return;
+    }
     const guess = /cs3223/i.test(v) ? 'points 型（8 个可评分叶子）' : 'levels + points 混合（R1–R4/R7 档位，R5/R6 计分点）';
     $('rubricInfo').textContent = v ? ('类型：' + guess) : '';
   }
+
+  const readB64 = f => new Promise((resolve, reject) => {
+    const rd = new FileReader();
+    rd.onload = () => resolve(String(rd.result).split(',')[1] || '');
+    rd.onerror = () => reject(new Error('读取文件失败'));
+    rd.readAsDataURL(f);
+  });
+
+  $('rubricFile').onchange = async function () {
+    const f = this.files[0];
+    const seq = ++rubricPreviewSeq;
+    rubricUpload = null;
+    $('rubricConfirm').checked = false;
+    $('rubricConfirmRow').style.display = 'none';
+    $('rubricPreview').replaceChildren();
+    if (!f) return;
+    $('rubric').value = '__upload__'; updateInfo();
+    if (!/\.txt$/i.test(f.name) || !f.size || f.size > MAX_RUBRIC_BYTES) {
+      $('rubricUploadStatus').textContent = '只支持非空 UTF-8 .txt，大小不超过 128 KB';
+      return;
+    }
+    $('rubricUploadStatus').textContent = '正在解析预览…';
+    try {
+      const file_base64 = await readB64(f);
+      const response = await fetch('/api/rubric/preview', {
+        method: 'POST', headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ file_name: f.name, file_base64 }),
+      });
+      const result = await response.json();
+      if (seq !== rubricPreviewSeq) return;
+      const box = $('rubricPreview');
+      const line = text => { const d = document.createElement('div'); d.textContent = text; box.appendChild(d); };
+      if (result.preview) {
+        const p = result.preview;
+        line('原件 SHA-256：' + p.sha256 + '；条目 ' + p.items.length + ' 项、可评分叶子 ' + p.leaves + ' 项、叶子分值合计 ' + p.total_points + ' 分');
+        line('归入条目行数：' + p.line_coverage + '（未归入行及问题见下方）');
+        for (const it of p.items) line((it.parent ? '　↳ ' : '') + it.id + ' · ' + it.text + (it.scorable ? ' [教师给分项]' : ' [父项]'));
+        for (const unparsed of p.unparsed_lines || []) line('未归入评分条目：' + unparsed);
+      }
+      for (const w of result.warnings || []) line('提醒：' + w);
+      for (const e of result.errors || []) line('需修改：' + e);
+      if (!response.ok || !result.ok) {
+        $('rubricUploadStatus').textContent = result.error || '预览未通过；请修改原始 TXT 后重新上传';
+        return;
+      }
+      rubricUpload = { file_name: f.name, file_base64, confirmed_sha256: result.preview.sha256 };
+      $('rubricUploadStatus').textContent = '预览通过，待上传者核对确认';
+      $('rubricConfirmRow').style.display = 'flex';
+    } catch (e) {
+      if (seq === rubricPreviewSeq) $('rubricUploadStatus').textContent = '预览失败：' + e.message;
+    }
+  };
 
   // ---------- 选文件 ----------
   const drop = $('drop'), fileInput = $('file');
@@ -110,11 +173,16 @@
   // ---------- 开始分析 ----------
   $('go').onclick = async function () {
     const preset = $('preset').value;
+    const customRubric = $('rubric').value === '__upload__';
     if (!preset && !picked) { alert('请先选择或拖入一份报告'); return; }
     if (!preset && picked && !fileDataB64) { alert('文件还在读取中，请稍候一秒再点'); return; }
+    if (customRubric && preset) { alert('新 rubric 请与新上传的报告一起分析，不用于预置案例'); return; }
+    if (customRubric && (!rubricUpload || !$('rubricConfirm').checked)) {
+      alert('请先上传 TXT rubric、核对预览并勾选确认'); return;
+    }
     const body = { source: preset ? 'preset' : 'upload', case: preset || undefined,
       file_name: preset ? undefined : picked.name, file_base64: preset ? undefined : fileDataB64,
-      rubric: $('rubric').value };
+      ...(customRubric ? { rubric_upload: rubricUpload } : { rubric: $('rubric').value }) };
     $('go').disabled = true;
     $('error').style.display = 'none';
     $('resultCard').style.display = 'none';

@@ -17,7 +17,9 @@
 
 ### 1.1 实时分析站（主入口）
 
-打开 https://autograder-sotv.onrender.com/realtime/ → 拖入一份 **.txt** 报告 → 选 rubric → 开始分析
+> 新 TXT rubric 上传需部署本次代码后才会出现在公网；部署前线上仍是预置 rubric 版本。
+
+打开 https://autograder-sotv.onrender.com/realtime/ → 拖入一份 **.txt** 报告 → 选预置 rubric，或上传全新 TXT rubric 并核对预览 → 开始分析
 （服务端真实跑完整评测链，约 3–6 分钟）→ 进入教师视图做确认/给分/导出。
 
 **耗时（务必先读，均为免费档实测值）**：
@@ -70,7 +72,7 @@ python -m http.server 8000 --directory fixtures/web
 流程（页面上按 ①→④ 走）：
 
 1. **选择报告**：拖拽/点选 `.pdf` / `.txt`（≤ 10 MB；PDF 会做页面渲染，从而支持"查看原文"跳页）——或选预置案例
-2. **选择 rubric**：CS3223（points 型 8 叶子）或 VerAs 单摆（levels + points 混合）
+2. **选择 rubric**：可选 CS3223 / VerAs 预置标准，或上传全新 UTF-8 `.txt`（≤128 KB）。新 rubric 需逐条编号并明确写出整数分值；页面先展示原文条目、层级、分值、未识别行，上传者核对勾选后才允许分析（当前没有教师身份认证）。当前不支持任意 Word/PDF 或等级型 rubric 的自动转换。
 3. **开始分析**：显示**分步进度**（评测链 → 教师视图）、实时用时、服务端日志尾
    —— 任务在服务端**异步执行**（job 轮询），避免长请求被浏览器/代理掐断
 4. **教师视图**：分析完成后内嵌显示（也可在新标签打开），随后即可确认/修改评价、给分、生成评语草稿、导出
@@ -79,6 +81,7 @@ python -m http.server 8000 --directory fixtures/web
 
 - **配额**：默认全局 6 次实时分析（环境变量 `REALTIME_QUOTA` 可调），防止密钥被刷；用尽返回 429 并提示
 - **上传上限**：`REALTIME_MAX_UPLOAD_MB`（默认 10 MB）
+- **新 rubric**：预览不消耗分析配额；正式提交时重新解析并核对上传者确认的原件 SHA-256。rubric 原件、规范化条目与执行配置只写进该任务目录，不会替换预置 rubric。
 - **密钥**：只在服务端 `process.env`，不写入文件、不返回前端、不出现在日志里
 - **降级**：未配置模型环境变量时，`/api/analyze` 明确返回 503（而不是假装有结果）
 
@@ -102,8 +105,8 @@ node src/server.mjs --port 8080 --web fixtures/web
 | `GET /` | 演示站首页（预置案例） |
 | `GET /cases/<name>.html` | 教师视图 |
 | `GET /api/cases` | 列出预置案例与可用 rubric |
+| `POST /api/rubric/preview` | 预览新 TXT rubric 的条目、层级、原文分值与解析问题；不调用模型、不消耗分析配额 |
 | `POST /api/analyze` | **上传报告 + 选 rubric → 跑完整评测链 → 返回教师视图**（需密钥） |
-| `POST /api/export` | 保存教师工作表 JSON（导出后可直接接入评语生成） |
 
 ### 2.2.1 实时站的安全设计（已加固）
 

@@ -17,6 +17,7 @@ import path from 'node:path';
 import crypto from 'node:crypto';
 import { execFile, spawn } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
+import { adaptTextRubric, decodeRubricUpload, writeUploadedRubric, MAX_RUBRIC_BYTES } from './rubric-upload.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.join(here, '..');
@@ -25,7 +26,7 @@ const argOf = (k, d) => { const i = process.argv.indexOf(k); return i >= 0 ? pro
 const PORT = Number(argOf('--port', 8080));
 const WEB = path.resolve(root, argOf('--web', 'fixtures/web'));
 const REALTIME = path.join(root, 'fixtures/realtime');
-const UPLOADS = path.join(root, 'fixtures/uploads');
+const UPLOADS = path.resolve(root, argOf('--uploads', 'fixtures/uploads'));
 const JOB_ROOT = path.join(UPLOADS, 'jobs');        // ★ 每个任务一个独立目录：uploads/jobs/<jobId>/
 
 const NODE = process.execPath;
@@ -238,10 +239,23 @@ const server = http.createServer(async (req, res) => {
         scope: '本次实例运行期间有效（写在实例本地磁盘；平台休眠/重建实例后可能重置）' });
     }
 
+    // 只预览，不落盘、不占分析配额。正式提交时还会按原始字节重新解析并核对 SHA。
+    if (p === '/api/rubric/preview' && req.method === 'POST') {
+      let body;
+      try { body = JSON.parse((await readBody(req, Math.ceil(MAX_RUBRIC_BYTES * 1.4) + 4096)).toString('utf8') || '{}'); }
+      catch (e) { return json(res, e.code === 413 ? 413 : 400, { error: e.code === 413 ? 'rubric 超过 128 KB' : '请求体不是合法 JSON' }); }
+      try {
+        const decoded = decodeRubricUpload(body.file_name, body.file_base64);
+        const result = adaptTextRubric(decoded.raw, 'rubric-upload.txt');
+        return json(res, result.ok ? 200 : 422, { ok: result.ok, errors: result.errors,
+          warnings: result.warnings, preview: result.preview });
+      } catch (e) { return json(res, 400, { ok: false, error: String(e?.message ?? e) }); }
+    }
+
     // ---------- 提交分析（顺序：大小 → 配额 → 并发 → 落盘 → 启动）----------
     if (p === '/api/analyze' && req.method === 'POST') {
       let body;
-      try { body = JSON.parse((await readBody(req, Math.ceil(MAX_UPLOAD_MB * 1024 * 1024 * 1.4) + 64 * 1024)).toString('utf8') || '{}'); }
+      try { body = JSON.parse((await readBody(req, Math.ceil(MAX_UPLOAD_MB * 1024 * 1024 * 1.4) + Math.ceil(MAX_RUBRIC_BYTES * 1.4) + 64 * 1024)).toString('utf8') || '{}'); }
       catch (e) { return json(res, e.code === 413 ? 413 : 400, { error: e.code === 413 ? '上传内容超过 ' + MAX_UPLOAD_MB + ' MB 限制' : '请求体不是合法 JSON' }); }
 
       const isPreset = body.source !== 'upload';
@@ -252,6 +266,26 @@ const server = http.createServer(async (req, res) => {
         if (approx > MAX_UPLOAD_MB * 1024 * 1024) return json(res, 413, { error: '文件超过 ' + MAX_UPLOAD_MB + ' MB 限制' });
         if (!/\.(pdf|txt)$/i.test(body.file_name)) return json(res, 400, { error: '只支持 .pdf / .txt' });
         // ★ 不拒绝 PDF：按 Yukii 的要求"建议 TXT，但真上传 PDF 就说明等待时间"（见下方 202 响应里的 eta_note）
+      }
+      const customRubric = body.rubric_upload != null;
+      let uploadedRubric = null;
+      let rubricPath, profilePath;
+      if (customRubric) {
+        if (isPreset) return json(res, 400, { error: '新 rubric 请与新上传的报告一起分析，不用于预置案例' });
+        try {
+          const decoded = decodeRubricUpload(body.rubric_upload.file_name, body.rubric_upload.file_base64);
+          const adapted = adaptTextRubric(decoded.raw, 'rubric-upload.txt');
+          if (!adapted.ok) return json(res, 422, { error: 'rubric 预览存在问题，请修改 TXT 后重新上传', details: adapted.errors });
+          if (body.rubric_upload.confirmed_sha256 !== decoded.sha256) {
+            return json(res, 409, { error: 'rubric 与已确认的预览版本不一致，请重新预览确认' });
+          }
+          uploadedRubric = { ...decoded, ...adapted };
+        } catch (e) { return json(res, 400, { error: String(e?.message ?? e) }); }
+      } else {
+        const selected = PRESETS.find(x => x.rubric === (body.rubric || PRESETS[0].rubric));
+        if (!selected) return json(res, 400, { error: '未知预置 rubric' });
+        rubricPath = path.join(root, selected.rubric);
+        profilePath = path.join(root, selected.profile);
       }
       // ② 配额（持久化，重启不清零）
       if (quotaLeft() <= 0) return json(res, 429, { error: '今日演示配额已用完（' + quota.used + '/' + QUOTA_LIMIT + '）',
@@ -264,7 +298,7 @@ const server = http.createServer(async (req, res) => {
           hint: '预置案例不需要模型：直接打开 /cases/<id>.html' });
       }
       // ⑤ 落盘（校验全部通过之后）—— ★ 建"每任务独立目录"，原件与产物都放进去
-      const job = newJob('', body.rubric || PRESETS[0].rubric);
+      const job = newJob('', customRubric ? `新上传 rubric · ${uploadedRubric.sha256.slice(0, 12)}` : (body.rubric || PRESETS[0].rubric));
       const jobDir = path.join(JOB_ROOT, job.id);
       let caseName, docPath, outDir;
       try {
@@ -283,15 +317,13 @@ const server = http.createServer(async (req, res) => {
           docPath = path.join(jobDir, caseName);             // ★ 原件也放本任务目录
           await fsp.writeFile(docPath, Buffer.from(body.file_base64, 'base64'));
         }
+        if (uploadedRubric) {
+          ({ rubricPath, profilePath } = await writeUploadedRubric(jobDir, uploadedRubric));
+        }
       } catch (e) {
         jobs.delete(job.id);
         return json(res, 500, { error: '落盘失败：' + String(e?.message ?? e) });
       }
-      const rubricPath = path.resolve(root, body.rubric || PRESETS[0].rubric);
-      const profilePath = path.resolve(root, body.profile || PRESETS[0].profile);
-      const designDir = path.join(root, 'design');
-      if (!rubricPath.startsWith(designDir) || !profilePath.startsWith(designDir)) return json(res, 400, { error: 'rubric / profile 只能取自 design/' });
-
       // ⑥ 启动任务（配额在**启动前**记账并落盘）
       quota.used += 1;
       await saveQuota();

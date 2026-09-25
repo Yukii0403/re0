@@ -84,6 +84,15 @@ a{color:var(--acc)}
       <select id="rubric"></select>
       <span class="tiny" id="rubricInfo"></span>
     </div>
+    <div id="rubricUploadBox" style="display:none;margin-top:12px">
+      <div class="tiny">比赛版支持 UTF-8 TXT、最多 128 KB、最多 20 个可评分条目。每条评分项须有编号和明确整数分值，例如「一、实验分析（20 分）」及「1. 解释结果（20 分）」。先预览并确认原文条目，再启动分析；系统不会补写标准或分值。条目越多，分析越慢、模型费用越高。<a href="/realtime/rubric-template.txt" target="_blank" rel="noopener noreferrer">查看格式示例</a></div>
+      <div class="row">
+        <input type="file" id="rubricFile" accept=".txt,text/plain">
+        <span class="tiny" id="rubricUploadStatus">尚未选择新 rubric</span>
+      </div>
+      <div id="rubricPreview" style="margin-top:10px"></div>
+      <label class="row" id="rubricConfirmRow" style="display:none"><input type="checkbox" id="rubricConfirm"> 我已核对条目、层级、原文分值与未识别行，确认使用这份 rubric</label>
+    </div>
   </div>
 
   <div class="card">
