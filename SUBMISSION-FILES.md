@@ -1,134 +1,26 @@
-# 准备提交的文件清单（共 92 个）
+# 赛事提交核对表
 
-> 生成方式：`git add -A --dry-run`（尊重 `.gitignore`，权威口径）。
-> 原则：**只保留运行所需的代码、配置、schema 与网页文件**；运行输出、原始报告、教师工作表、日志、密钥一律排除。
+本表按赛事手册整理，**不代表已经提交成功**。截止时间：**2026 年 9 月 26 日 23:59**；组队只需一人提交，截止前可修改，评委看到最后一次版本。请以赛事平台当时显示的字段与状态为准。
 
-## 配置与文档（5）
+## 必交材料
 
-- `.dockerignore`
-- `.gitignore`
-- `Dockerfile`
-- `README.md`
-- `render.yaml`
+- [ ] 在线作品链接：优先填 [实时分析站](https://autograder-sotv.onrender.com/realtime/)，并在说明中附 [三案例演示站](https://autograder-sotv.onrender.com/)；提交前用无痕窗口打开，确认不是只有本机能访问。实时站共享配额、可能冷启动，预置案例不等于现场分析。
+- [ ] 三分钟 Demo：上传最终 `.mp4` 或 `.mov`；展示“新 rubric 预览 → 已真实分析过的新案例 → 原文核对 → 教师修改评价/给分 → 评语草稿”，不要把预生成案例说成现场实时返回。录制脚本见 [demo-3min.md](delivery/demo-3min.md)。
+- [ ] 作品介绍 PPT：提交最终 `.pptx` 或 `.pdf`；核对作品简介、赛题方向、AI 能力、技术方案和团队成员信息。
+- [ ] [GitHub 源代码仓库](https://github.com/Yukii0403/re0)：确认 README、[MIT 许可证](LICENSE)、在线链接及提交版本均可公开访问；不要上传密钥、真实学生数据或本地分析产物。
+- [ ] LearnBuddy 使用记录：按赛事平台要求附开发过程历史对话记录或可访问的记录链接；**GitHub 仓库不能替代这一项**。
+- [ ] 在 LearnBuddy 赛事专区核对最终提交回执/预览，确保五项材料都进入**最后一次**提交版本。
 
-## 设计文档（7）
+## 提交前的体验检查
 
-- `design/L1-document-index.md`
-- `design/L2-evidence-focus.md`
-- `design/L3-mechanical-verification.md`
-- `design/L4-rubric-assessment.md`
-- `design/evaluation-plan-veras.md`
-- `design/veras-admission-criteria-sourcing.md`
-- `design/veras-r6-r1-case-postmortem.md`
+- [ ] 唤醒 Render 实例后再次打开两个在线链接；静态案例页应能打开，实时站应能显示上传与 rubric 预览入口。
+- [ ] 用预置或合成材料检查教师视图的原文跳转、确认/修改评价、给分与下载。PDF 应打开原 PDF 的对应页，TXT 则查看原始文本；不要宣称 PDF 有逐字高亮。
+- [ ] 检查实时剩余配额；若不足，以预生成案例演示，并如实说明它不是实时请求。
+- [ ] 检查 PPT、视频中的队名和成员：游龙队；毛远哲（深圳大学，计算机科学与技术）、沈琪峰（暨南大学，数学与应用数学）。
+- [ ] 不在视频、PPT、网页或仓库中展示模型密钥、任务 token、真实学生个人信息。
 
-## rubric / profile 定义（5）
+## 尚需人工确认的外部材料
 
-- `design/canonical-rubric.cs3223-test.json`
-- `design/canonical-rubric.example.json`
-- `design/canonical-rubric.veras-pendulum.json`
-- `design/rubric-assessment-profile.cs3223-test.json`
-- `design/rubric-assessment-profile.veras-pendulum.json`
+仓库中的预置案例包含来自第三方的公开报告/数据。**“互联网上可访问”不等于“获准重新分发或以 MIT 授权”**。来源与范围见 [README](README.md#第三方材料与许可)；提交前应核对原始许可或取得授权。无法确认时，用原创合成案例替换相关公开展示材料。此项不因给本项目添加 MIT 许可证而自动解决。
 
-## schema（8）
-
-- `design/canonical-rubric.schema.json`
-- `design/document-index.schema.json`
-- `design/evidence-candidates.schema.json`
-- `design/retrieval-plan.schema.json`
-- `design/rubric-assessment-profile.schema.json`
-- `design/rubric-assessment.schema.json`
-- `design/summary.schema.json`
-- `design/verification-checks.schema.json`
-
-## 示例与标注（8）
-
-- `design/document-index.example.json`
-- `design/document-index.example.txt`
-- `design/evidence-candidates.example.json`
-- `design/retrieval-plan.example.json`
-- `design/rubric.cs3223-test.ann.json`
-- `design/rubric.cs3223-test.txt`
-- `design/rubric.example.txt`
-- `design/verification-checks.example.json`
-
-## 网页（6）
-
-- `fixtures/realtime/app.js`
-- `fixtures/realtime/index.html`
-- `fixtures/web/cases/2019-calculus-RR03-0503.txt.html`
-- `fixtures/web/cases/cs3223-writeup.pdf.html`
-- `fixtures/web/index.html`
-- `fixtures/web/manifest.json`
-
-## 代码（53）
-
-- `src/_apiprobe.mjs`
-- `src/_auditsheet.mjs`
-- `src/_e2e.mjs`
-- `src/_evaldiag.mjs`
-- `src/_evalsum.mjs`
-- `src/_evalveras.mjs`
-- `src/_freezecheck.mjs`
-- `src/_l2run.mjs`
-- `src/_l4run.mjs`
-- `src/_llmrun.mjs`
-- `src/_mkchecks.mjs`
-- `src/_mkexample.mjs`
-- `src/_mkfixtures.mjs`
-- `src/_mkholdout.mjs`
-- `src/_mkindex.mjs`
-- `src/_mklist.mjs`
-- `src/_mkplan.mjs`
-- `src/_mkprofile.mjs`
-- `src/_mkrubric.mjs`
-- `src/_mksite.mjs`
-- `src/_mkveras.mjs`
-- `src/_newcheck.mjs`
-- `src/_pdfprobe.mjs`
-- `src/_realtest.mjs`
-- `src/_repoaudit.mjs`
-- `src/_rprofile.mjs`
-- `src/_rprofile2.mjs`
-- `src/_rsec.mjs`
-- `src/_rtest.mjs`
-- `src/_rtunnel.mjs`
-- `src/_selftest.mjs`
-- `src/_smoke.mjs`
-- `src/_stats.mjs`
-- `src/_summaryrun.mjs`
-- `src/_teacheredit.mjs`
-- `src/_teacherui.mjs`
-- `src/_toolrun.mjs`
-- `src/_tvrun.mjs`
-- `src/l1.mjs`
-- `src/l2.mjs`
-- `src/l4.mjs`
-- `src/llm.mjs`
-- `src/page.mjs`
-- `src/quote-binding.mjs`
-- `src/server.mjs`
-- `src/summary.mjs`
-- `src/teacherui.app.js`
-- `src/teacherui.export.js`
-- `src/teacherview.mjs`
-- `src/toolcalling.mjs`
-- `src/validator.mjs`
-- `src/veras-map.mjs`
-- `src/verify-tools.mjs`
-
----
-
-## 已排除（要点）
-
-- **密钥**：`.env*`、`*.key`、`secrets.json`、`.npmrc`
-- **运行输出**：`fixtures/out/`、`fixtures/**/out*/`、`*.out.txt`、`*.index.json`、`src/*.txt`、`src/*.pid`
-- **原始报告与测试夹具**：`fixtures/report*.pdf|html|docx|txt`、`fixtures/real/*.pdf`
-- **教师工作表**：`design/teacher-scores*.json`、`design/*-work.json`
-- **用户数据**：`fixtures/uploads/`（上传原件与分析产物）
-- **本地样本与数据集**：`fixtures/veras/`
-- **日志与本地工具**：`*.log`、`*.err`、`tools/`（cloudflared 二进制 ~55MB）
-
-## 两个说明
-
-- `fixtures/web/cases/*.html` 由 `src/_mksite.mjs` 生成，但**保留入库** —— 否则演示站点没有页面内容，无法直接部署。
-- `src/` 下另有若干开发期探针（如 `_apiprobe.mjs`、`_pdfprobe.mjs`），体积很小；如需更精简可再移除。
+第三方运行依赖列于 `package.json`（`pdfjs-dist`、`@napi-rs/canvas`、`fflate`），使用和再分发时分别遵守其许可证。
