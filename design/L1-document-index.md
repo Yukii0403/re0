@@ -1,26 +1,24 @@
 # AutoGrader · L1 设计（极简版）
 
-> 适用输入：**PDF 与 docx 的纯文本作业**。不做手写、不做扫描件。
+> 本文重点说明有文本层的 **PDF / DOCX** 解析；纯文本 TXT 走文本入口。不做手写或扫描件识别。
 > 实现：`src/l1.mjs` 单文件。测试：`src/_selftest.mjs`（合成夹具）、`src/_realtest.mjs`（真实文件）。
 
 ---
 
 ## 0. 一句话
 
-**输入一份作业，输出两个文件：原文 `.txt`（逐字）+ 索引 `.index.json`（目录）。索引只负责指路，一个字都不改。**
+**输入一份作业，输出抽取后的原文 `.txt` 与定位索引 `.index.json`。索引只引用抽取文本，不改写它。**
 
 ---
 
 ## 1. 核心判断：L1 不调用任何模型
 
-索引是给 LLM **消费**的，不是给 LLM **生成**的。PDF/docx 都有文本层，判断"哪行是图注、哪行是代码"纯靠规则就够。
-
-规则生成 → 零幻觉 → 那些为了"不信任生成内容"才存在的机制（置信度、审阅队列、patch 回放、gold set、指标矩阵）**全部不需要**。
+索引是给 LLM **消费**的，不由 LLM **生成**。文本提取、顺序记录与类型打标由规则完成；这避免模型改写原文，但**不保证解析结果没有漏字、错序或类型误判**，仍需保留原件供核对。
 
 连带删掉的三件事：
 - ❌ **不做公式转 LaTeX** —— 那正是"改变原文"
 - ❌ **不做图注配对、图内数据抽取、语义摘要**
-- ❌ **不做阅读顺序算法** —— 文本层给出的顺序就是顺序
+- ❌ **不重排双栏阅读顺序** —— 文本层顺序可能有误，需显式警告
 
 需要看图 / 看公式时，索引给出**页码**，下游按需把整页渲染成图交给多模态模型。多模态能力保留为**按需消费**，不作为 L1 的固定成本。
 
@@ -40,7 +38,7 @@ entries.every(e => full.slice(e.start, e.end) === e.text)
 块内行数合计 === 非空原文行数
 ```
 
-第二条是补上的 —— 光靠第①条只能证明"没改字"，证明不了"没丢行"。两条都过，才算"不改变原文任何信息"。
+第①条检查索引没有改写抽取文本，第②条检查非空文本行没有在建索引时丢失。两条都通过**不等于** PDF/DOCX 抽取本身无误。
 
 **精确表述**（不过度承诺）：`.txt` 保留原文字符序列与顺序；**表格的行列结构、原图的像素内容不在文本层里，因此不在索引范围内**。图必须有图注才能进索引，无图注的图 L1 看不见 —— 这是"只做文本"的已知代价。
 
@@ -205,8 +203,7 @@ Chromium / Word 打出来的 PDF，缩进是靠**文字定位**实现的，文�
   实验二.pdf.index.json       目录
 ```
 
-**命名带上原始扩展名**：`report.pdf` → `report.pdf.txt`。若按"去掉扩展名"命名，同一目录下的
-`report.pdf` 与 `report.docx` 会都写成 `report.txt` 而**互相覆盖**（这个 bug 是在真实测试的产物清单里发现的）。
+**命名带上原始扩展名**：`report.pdf` → `report.pdf.txt`，避免与同名 DOCX 的输出互相覆盖。
 
 索引条目：
 
@@ -274,14 +271,7 @@ Chromium / Word 打出来的 PDF，缩进是靠**文字定位**实现的，文�
 | `report.docx` | 1.6 KB | 11 | ✅ | **11/11** | 1 张（走 `\t`） | heading 2 · paragraph 3 · code 2 · figure 1 · formula 1 · table 2 |
 | **`cs3223-writeup.pdf`（外部真实样本）** | 539 KB | 54 | ✅ | **86/86** | **4 张** | paragraph 33 · heading 2 · code 19 |
 
-CS3223 那份的表格还原（`pdf_geometry`，全部 `key_query_safe=true`，其中 3 张）：
-
-```
-t0001  列头: Team Members | Student No. | Email          行: Kelvin Wong | A0201706U | e0415515@u.nus.edu
-t0002  列头: Course | Cid, Title, DeptId                 行: Dept | Did, Dname
-t0003  列头: Join Plan | Index-join | Merge-join | Hash-join | Nested-join
-       行  : Run 1 | 0.25 | 9 | 11 | 0.31     …  行: Average Time (ms) | 0.25 | 5.8 | 11.4 | 0.30
-```
+CS3223 的表格示例包含多列表头与运行时间行；其中可安全键值查询的表格标记为 `key_query_safe=true`。本文件不重复披露报告中的人员信息。
 
 **结论**：三份文件的逐字不变与行覆盖断言全部通过。**索引粒度从 112 条压到 63 条**（段落合并生效），代码块 7 行合并成 1 条，页眉页脚各 4 条已被打标而不是混在正文里。
 
@@ -303,17 +293,9 @@ t0003  列头: Join Plan | Index-join | Merge-join | Hash-join | Nested-join
 
 ## 8. 依赖与已知限制
 
-**依赖只有两个**（纯 JS，无原生模块）：`pdfjs-dist`、`fflate`。
+L1 文本解析主要使用 `pdfjs-dist`、`fflate`；页面渲染依赖在仓库 [`package.json`](../package.json) 中列明。
 
 XML 解析**自己写**（约 90 行）：docx 的 XML 很规整，自写反而能原生保证"按文档顺序"——通用解析器会把同名兄弟节点合并成数组，顺序被静默打乱。顺带把 `fast-xml-parser@5`（6 个传递依赖）整个去掉了。
-
-本机 npm 官方源不通，且沙箱拦截删除会导致 `npm install` 静默失败。可用的替代做法（已验证）：
-
-```bash
-curl -sL -o pdfjs.tgz https://registry.npmmirror.com/pdfjs-dist/-/pdfjs-dist-6.3.289.tgz
-mkdir -p node_modules/pdfjs-dist && tar -xzf pdfjs.tgz -C node_modules/pdfjs-dist --strip-components=1
-# fflate 同理
-```
 
 **已知限制**（都是"只做文本"的固有代价，不是 bug）：
 1. **双栏 PDF 顺序不可信** —— 只给警告，不修。其 `cell_breaks` 也不可信
