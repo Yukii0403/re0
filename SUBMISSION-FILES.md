@@ -6,7 +6,7 @@
 
 - [ ] 在线作品链接：优先填 [实时分析站](https://autograder-sotv.onrender.com/realtime/)，并在说明中附 [三案例演示站](https://autograder-sotv.onrender.com/)；提交前用无痕窗口打开，确认不是只有本机能访问。实时站共享配额、可能冷启动，预置案例不等于现场分析。
 - [ ] 三分钟 Demo：上传最终 `.mp4` 或 `.mov`；展示“新 rubric 预览 → 已真实分析过的新案例 → 原文核对 → 教师修改评价/给分 → 评语草稿”，不要把预生成案例说成现场实时返回。录制脚本见 [demo-3min.md](delivery/demo-3min.md)。
-- [ ] 作品介绍 PPT：提交最终 `.pptx` 或 `.pdf`；核对作品简介、赛题方向、AI 能力、技术方案和团队成员信息。
+- [ ] 作品介绍 PPT：提交最终 `.pptx` 或 `.pdf`；核对作品简介、赛题方向、AI 能力、技术方案和团队成员信息。完整设计、实现证据、工程边界与创新点可对照[项目技术总览](design/PROJECT-OVERVIEW.md)，PPT 只呈现要点。
 - [ ] [GitHub 源代码仓库](https://github.com/Yukii0403/re0)：确认 README、[MIT 许可证](LICENSE)、在线链接及提交版本均可公开访问；不要上传密钥、真实学生数据或本地分析产物。
 - [ ] LearnBuddy 使用记录：按赛事平台要求附开发过程历史对话记录或可访问的记录链接；**GitHub 仓库不能替代这一项**。
 - [ ] 在 LearnBuddy 赛事专区核对最终提交回执/预览，确保五项材料都进入**最后一次**提交版本。
